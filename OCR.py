@@ -45,6 +45,7 @@ def main():
         # Enhance the brightness of the image
         enhancer = ImageEnhance.Brightness(img)
         img_enhanced = enhancer.enhance(2.0)  # Increase brightness by a factor of 2
+
         
         img_array = np.array(img_enhanced)
 
@@ -61,7 +62,7 @@ def main():
 
                     # Display the extracted text
                     st.subheader('Extracted Text:')
-                    st.text(extracted_text)
+                    st.markdown(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
 
