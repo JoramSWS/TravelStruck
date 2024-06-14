@@ -45,7 +45,7 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(2.0)  # Increase brightness by a factor of 2
+        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 2
 
         # Enhance the sharpness of the image
         sharpness_enhancer = ImageEnhance.Sharpness(img_brightened)
