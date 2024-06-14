@@ -71,7 +71,7 @@ def main():
 
                     # Display the extracted text
                     st.subheader('Extracted Text:')
-                    st.text(extracted_text)
+                    st.markdown(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
 
