@@ -3,7 +3,7 @@ import requests
 import base64
 import streamlit as st
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 # Set environment variables from Streamlit secrets
 os.environ["GOOGLE_OCR_API"] = st.secrets["GOOGLE_OCR_API"]
@@ -41,16 +41,21 @@ def main():
 
     if image_file is not None:
         img = Image.open(image_file)
-        img = np.array(img)
+        
+        # Enhance the contrast of the image
+        enhancer = ImageEnhance.Contrast(img)
+        img_enhanced = enhancer.enhance(2.0)  # Increase contrast by a factor of 2
+        
+        img_array = np.array(img_enhanced)
 
         st.subheader('Image you Uploaded...')
-        st.image(image_file, width=450)
+        st.image(img_array, width=450)
 
         if st.button("Convert"):
             with st.spinner('Extracting Text from given Image...'):
                 try:
                     # Perform OCR
-                    image_content = image_file.read()
+                    image_content = img_enhanced.tobytes()
                     extracted_text = perform_ocr(image_content)
 
                     # Display the extracted text
