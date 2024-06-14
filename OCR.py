@@ -44,7 +44,7 @@ def main():
         
         # Enhance the brightness of the image
         enhancer = ImageEnhance.Brightness(img)
-        img_enhanced = enhancer.enhance(2.0)  # Increase brightness by a factor of 2
+        img_enhanced = enhancer.enhance(1.5)  # Increase brightness by a factor of 2
 
         
         img_array = np.array(img_enhanced)
