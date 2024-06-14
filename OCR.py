@@ -4,6 +4,7 @@ import base64
 import streamlit as st
 import numpy as np
 from PIL import Image, ImageEnhance
+import io 
 
 # Set environment variables from Streamlit secrets
 os.environ["GOOGLE_OCR_API"] = st.secrets["GOOGLE_OCR_API"]
@@ -44,17 +45,13 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.5
+        img_brightened = brightness_enhancer.enhance(2.0)  # Increase brightness by a factor of 2
 
         # Enhance the sharpness of the image
         sharpness_enhancer = ImageEnhance.Sharpness(img_brightened)
         img_sharpened = sharpness_enhancer.enhance(2.0)  # Increase sharpness by a factor of 2
-
-        # Enhance the contrast of the image
-        contrast_enhancer = ImageEnhance.Contrast(img_sharpened)
-        img_contrast = contrast_enhancer.enhance(1.5)
-
-        img_array = np.array(img_contrast)
+        
+        img_array = np.array(img_sharpened)
 
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
@@ -65,9 +62,9 @@ def main():
                     # Perform OCR
                     # Convert the enhanced image to bytes for OCR
                     buffered = io.BytesIO()
-                    img_contrast.save(buffered, format="PNG")
-                    img_contrast_bytes = buffered.getvalue()
-                    extracted_text = perform_ocr(img_contrast_bytes)
+                    img_sharpened.save(buffered, format="PNG")
+                    img_sharpened_bytes = buffered.getvalue()
+                    extracted_text = perform_ocr(img_sharpened_bytes)
 
                     # Display the extracted text
                     st.subheader('Extracted Text:')
