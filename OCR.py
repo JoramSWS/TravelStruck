@@ -42,9 +42,10 @@ def main():
     if image_file is not None:
         img = Image.open(image_file)
         
-        # Enhance the contrast of the image
-        enhancer = ImageEnhance.Contrast(img)
-        img_enhanced = enhancer.enhance(1.0)  # Increase contrast by a factor of 1
+        # Enhance the brightness of the image
+        enhancer = ImageEnhance.Brightness(img)
+        img_enhanced = enhancer.enhance(2.0)  # Increase brightness by a factor of 2
+
         
         img_array = np.array(img_enhanced)
 
@@ -55,8 +56,9 @@ def main():
             with st.spinner('Extracting Text from given Image...'):
                 try:
                     # Perform OCR
-                    image_content = img_enhanced.tobytes()
-                    extracted_text = perform_ocr(image_content)
+                    # Convert the enhanced image to bytes for OCR
+                    img_enhanced_bytes = img_enhanced.tobytes()
+                    extracted_text = perform_ocr(img_enhanced_bytes)
 
                     # Display the extracted text
                     st.subheader('Extracted Text:')
