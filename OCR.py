@@ -44,7 +44,7 @@ def main():
         
         # Enhance the contrast of the image
         enhancer = ImageEnhance.Contrast(img)
-        img_enhanced = enhancer.enhance(3.0)  # Increase contrast by a factor of 3
+        img_enhanced = enhancer.enhance(1.0)  # Increase contrast by a factor of 1
         
         img_array = np.array(img_enhanced)
 
