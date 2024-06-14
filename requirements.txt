@@ -1,0 +1,6 @@
+streamlit
+requests
+os
+base64
+numpy
+PIL
