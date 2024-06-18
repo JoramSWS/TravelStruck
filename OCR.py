@@ -100,7 +100,7 @@ def extract_nationality(full_text):
         dateofbirth_index = full_text.find("Date of birth", start_index)
         if dateofbirth_index != -1:
             # Extract the text between "Nacionalidad" and "Date of birth"
-            nationality = full_text[start_index + len("Nombres"):dateofbirth_index].strip()
+            nationality = full_text[start_index + len("Nacionalidad"):dateofbirth_index].strip()
             return nationality
     return ""
 
