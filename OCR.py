@@ -50,9 +50,15 @@ def perform_ocr(image_content):
         # Extract nationality
         nationality = extract_nationality(full_text)
 
-        return passport_number, surname, givenname, nationality
+        # Extract DOB
+        dateofbirth = extract_dateofbirth(full_text)
+
+        # Extract date of issue
+        placeofbirth = extract_placeofbirth(full_text)
+
+        return passport_number, surname, givenname, nationality, dateofbirth, placeofbirth
     
-    return "", "", "", ""
+    return "", "", "", "", "", ""
 
 def extract_passport_number(full_text):
     # Find the starting index of "No. de Pasaporte"
@@ -102,6 +108,30 @@ def extract_nationality(full_text):
             # Extract the text between "Nacionalidad" and "Date of birth"
             nationality = full_text[start_index + len("Nacionalidad"):dateofbirth_index].strip()
             return nationality
+    return ""
+
+def extract_dateofbirth(full_text):
+    # Find the starting index of "Fecha de nacimiento"
+    start_index = full_text.find("Fecha de nacimiento")
+    if start_index != -1:
+        # Find the starting index of "Place of birth" after "Fecha de nacimiento"
+        placeofbirth_index = full_text.find("Place of birth", start_index)
+        if placeofbirth_index != -1:
+            # Extract the text between "Fecha de nacimiento" and "Place of birth"
+            dateofbirth = full_text[start_index + len("Fecha de nacimiento"):placeofbirth_index].strip()
+            return dateofbirth
+    return ""
+
+def extract_placeofbirth(full_text):
+    # Find the starting index of "Lugar de nacimiento"
+    start_index = full_text.find("Lugar de nacimiento")
+    if start_index != -1:
+        # Find the starting index of "Date of issue" after "Lugar de nacimiento"
+        dateofissue_index = full_text.find("Date of issue", start_index)
+        if dateofissue_index != -1:
+            # Extract the text between "Lugar de nacimiento" and "Date of issue"
+            placeofbirth = full_text[start_index + len("Lugar de nacimiento"):dateofissue_index].strip()
+            return placeofbirth
     return ""
 
 def main():
