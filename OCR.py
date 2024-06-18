@@ -56,17 +56,30 @@ def extract_mrz(text):
         return [mrz_line_1, mrz_line_2]
     return []
 
-def extract_mrz_info(mrz_line):
-    if mrz_line.startswith("P<") and len(mrz_line) > 5:
-        issuing_country = mrz_line[2:5]  # Extract 3 characters after "P<"
-        name_part = mrz_line[5:]
+def extract_mrz_info(mrz_lines):
+    if len(mrz_lines) < 2:
+        return "", "", "", ""
+
+    # Process the first MRZ line
+    mrz_line_1 = mrz_lines[0]
+    issuing_country, surname, given_name = "", "", ""
+    
+    if mrz_line_1.startswith("P<") and len(mrz_line_1) > 5:
+        issuing_country = mrz_line_1[2:5]  # Extract 3 characters after "P<"
+        name_part = mrz_line_1[5:]
         name_end_index = name_part.find("<<")
         if name_end_index != -1:
             surname = name_part[:name_end_index].replace("<", " ").strip()
             given_name_part = name_part[name_end_index + 2:]  # Skip "<<"
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
-            return issuing_country, surname, given_name
-    return "", "", ""
+    
+    # Process the second MRZ line
+    mrz_line_2 = mrz_lines[1]
+    passport_number = ""
+    if mrz_line_2 and mrz_line_2[0].isdigit():
+        passport_number = mrz_line_2[:9]  # Extract the first 9 digits
+    
+    return issuing_country, surname, given_name, passport_number
 
 def main():
     # Streamlit App
@@ -112,16 +125,17 @@ def main():
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
-                        issuing_country, surname, given_name = extract_mrz_info(mrz_lines[0])
+                        issuing_country, surname, given_name, passport_number = extract_mrz_info(mrz_lines[0])
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
                         st.subheader('Surname:')
                         st.text(surname)
-                        st.subheader('Extracted MRZ:')
                         st.subheader('Given Name')
                         st.text(given_name)
+                        st.subheader('Passport Number')
+                        st.text(passport_number)
+                        st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
-                        st.error("MRZ not found in the extracted text.")
                 except Exception as e:
                     st.error(f"Error: {e}")
 
