@@ -95,7 +95,13 @@ def extract_mrz_info(mrz_lines):
 
 def format_date_of_birth(date_of_birth):
     try:
-        dob_datetime = datetime.strptime(date_of_birth, "%y%m%d")
+        dob_year = int(date_of_birth[:2])
+        current_year = datetime.now().year % 100
+        if dob_year > current_year:
+            dob_year += 1900
+        else:
+            dob_year += 2000
+        dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
         formatted_date = dob_datetime.strftime("%B/%d/%Y")
         return formatted_date
     except ValueError:
@@ -168,7 +174,6 @@ def main():
                         st.text({formatted_date_of_birth})    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
-
 
 
                 except Exception as e:
