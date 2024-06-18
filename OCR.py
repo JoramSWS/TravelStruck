@@ -23,7 +23,7 @@ def perform_ocr(image_content):
                 },
                 "features": [
                     {
-                        "type": "TEXT_DETECTION"
+                        "type": "DOCUMENT_TEXT_DETECTION"
                     }
                 ]
             }
