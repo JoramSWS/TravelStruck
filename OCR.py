@@ -56,6 +56,11 @@ def extract_mrz(text):
         return [mrz_line_1, mrz_line_2]
     return []
 
+def extract_issuing_country(mrz_line):
+    if mrz_line.startswith("P<") and len(mrz_line) > 3:
+        return mrz_line[2:5]  # Extract 3 characters after "P<"
+    return ""
+
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
@@ -100,6 +105,9 @@ def main():
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
+                        issuing_country = extract_issuing_country(mrz_lines[0])
+                        st.subheader('Issuing Country:')
+                        st.text(issuing_country)
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                     else:
