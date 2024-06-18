@@ -123,15 +123,15 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.5
+        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.5
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
-        img_contrasted = contrast_enhancer.enhance(1.5)  # Increase contrast by a factor of 1.5
+        img_contrasted = contrast_enhancer.enhance(1.0)  # Increase contrast by a factor of 1.5
 
         # Enhance the sharpness of the image
         sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
-        img_sharpened = sharpness_enhancer.enhance(2.0)  # Increase sharpness by a factor of 2
+        img_sharpened = sharpness_enhancer.enhance(1.0)  # Increase sharpness by a factor of 2
         
         img_array = np.array(img_sharpened)
 
