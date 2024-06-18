@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image, ImageEnhance
 import io
 from pdf2image import convert_from_bytes
+from datetime import datetime
 
 # Set environment variables from Streamlit secrets
 os.environ["GOOGLE_OCR_API"] = st.secrets["GOOGLE_OCR_API"]
@@ -63,7 +64,7 @@ def calculate_check_digit(data):
 
 def extract_mrz_info(mrz_lines):
     if len(mrz_lines) < 2:
-        return "", "", "", "", ""
+        return "", "", "", "", "", "", "", ""
 
     # Process the first MRZ line
     mrz_line_1 = mrz_lines[0]
@@ -80,16 +81,25 @@ def extract_mrz_info(mrz_lines):
     
     # Process the second MRZ line
     mrz_line_2 = mrz_lines[1]
-    passport_number, check_digit_from_mrz, nationality = "", "", ""
-    if mrz_line_2 and len(mrz_line_2) > 12:
+    passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
+    if mrz_line_2 and len(mrz_line_2) > 19:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
         check_digit_from_mrz = mrz_line_2[9]  # Extract the 10th character (check digit)
         nationality = mrz_line_2[10:13]  # Extract the next 3 characters for nationality
+        date_of_birth = mrz_line_2[13:19]  # Extract the next 6 characters for date of birth
     
     # Calculate the check digit for the passport number
     calculated_check_digit = calculate_check_digit(passport_number)
     
-    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality
+    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth
+
+def format_date_of_birth(date_of_birth):
+    try:
+        dob_datetime = datetime.strptime(date_of_birth, "%y%m%d")
+        formatted_date = dob_datetime.strftime("%B/%d/%Y")
+        return formatted_date
+    except ValueError:
+        return "Invalid Date"
 
 def main():
     # Streamlit App
@@ -135,7 +145,10 @@ def main():
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
-                        issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality = extract_mrz_info(mrz_lines)
+                        issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
+                        
+                        formatted_date_of_birth = format_date_of_birth(date_of_birth)
+                        
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
                         st.subheader('Surname:')
@@ -149,7 +162,10 @@ def main():
                         else:
                             st.text("Passport Number extraction verified.")
                         st.subheader('Nationality')
-                        st.text(nationality)    
+                        st.text(nationality)
+                        st.subheader('Date of Birth')
+                        st.text({date_of_birth})
+                        st.text({formatted_date_of_birth})    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
 
