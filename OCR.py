@@ -82,7 +82,7 @@ def extract_givenname(full_text):
     start_index = full_text.find("Nombres")
     if start_index != -1:
         # Find the starting index of "Nationality" after "Nombres"
-        nationality_index = full_text.find("Given Names", start_index)
+        nationality_index = full_text.find("Nationality", start_index)
         if nationality_index != -1:
             # Extract the text between "Nombres" and "Nationality"
             givenname = full_text[start_index + len("Nombres"):nationality_index].strip()
