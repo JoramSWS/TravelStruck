@@ -37,108 +37,21 @@ def perform_ocr(image_content):
     texts = response_data['responses'][0].get('textAnnotations', [])
     if texts:
         full_text = texts[0]['description']
-        
-        # Extract passport number
-        passport_number = extract_passport_number(full_text)
-        
-        # Extract surname between "Apellidos" and "Given Names"
-        surname = extract_surname(full_text)
-
-        # Extract given name
-        givenname = extract_givenname(full_text)
-        
-        # Extract nationality
-        nationality = extract_nationality(full_text)
-
-        # Extract DOB
-        dateofbirth = extract_dateofbirth(full_text)
-
-        # Extract date of issue
-        placeofbirth = extract_placeofbirth(full_text)
-
-        return passport_number, surname, givenname, nationality, dateofbirth, placeofbirth
-    
-    return "", "", "", "", "", ""
-
-def extract_passport_number(full_text):
-    # Find the starting index of "No. de Pasaporte"
-    start_index = full_text.find("No. de Pasaporte")
-    if start_index != -1:
-        # Extract the passport number following "No. de Pasaporte"
-        passport_number = ""
-        for char in full_text[start_index + len("No. de Pasaporte"):].strip():
-            if char.isdigit():
-                passport_number += char
-            elif passport_number:  # Stop if we encounter a non-digit after starting to collect digits
-                break
-        return passport_number
+        return full_text
     return ""
 
-def extract_surname(full_text):
-    # Find the starting index of "Apellidos"
-    start_index = full_text.find("Apellidos")
-    if start_index != -1:
-        # Find the starting index of "Given Names" after "Apellidos"
-        given_names_index = full_text.find("Given Names", start_index)
-        if given_names_index != -1:
-            # Extract the text between "Apellidos" and "Given Names"
-            surname = full_text[start_index + len("Apellidos"):given_names_index].strip()
-            return surname
-    return ""
-
-def extract_givenname(full_text):
-    # Find the starting index of "Nombres"
-    start_index = full_text.find("Nombres")
-    if start_index != -1:
-        # Find the starting index of "Nationality" after "Nombres"
-        nationality_index = full_text.find("Nationality", start_index)
-        if nationality_index != -1:
-            # Extract the text between "Nombres" and "Nationality"
-            givenname = full_text[start_index + len("Nombres"):nationality_index].strip()
-            return givenname
-    return ""
-
-def extract_nationality(full_text):
-    # Find the starting index of "Nacionalidad"
-    start_index = full_text.find("Nacionalidad")
-    if start_index != -1:
-        # Find the starting index of "Date of birth" after "Nacionalidad"
-        dateofbirth_index = full_text.find("Date of birth", start_index)
-        if dateofbirth_index != -1:
-            # Extract the text between "Nacionalidad" and "Date of birth"
-            nationality = full_text[start_index + len("Nacionalidad"):dateofbirth_index].strip()
-            return nationality
-    return ""
-
-def extract_dateofbirth(full_text):
-    # Find the starting index of "Fecha de nacimiento"
-    start_index = full_text.find("Fecha de nacimiento")
-    if start_index != -1:
-        # Find the starting index of "Place of birth" after "Fecha de nacimiento"
-        placeofbirth_index = full_text.find("Place of birth", start_index)
-        if placeofbirth_index != -1:
-            # Extract the text between "Fecha de nacimiento" and "Place of birth"
-            dateofbirth = full_text[start_index + len("Fecha de nacimiento"):placeofbirth_index].strip()
-            return dateofbirth
-    return ""
-
-def extract_placeofbirth(full_text):
-    # Find the starting index of "Lugar de nacimiento"
-    start_index = full_text.find("Lugar de nacimiento")
-    if start_index != -1:
-        # Find the starting index of "Date of issue" after "Lugar de nacimiento"
-        dateofissue_index = full_text.find("Date of issue", start_index)
-        if dateofissue_index != -1:
-            # Extract the text between "Lugar de nacimiento" and "Date of issue"
-            placeofbirth = full_text[start_index + len("Lugar de nacimiento"):dateofissue_index].strip()
-            return placeofbirth
-    return ""
+def extract_mrz(text):
+    lines = text.split('\n')
+    mrz_lines = [line for line in lines if line.startswith("P<") or (line and line[0].isdigit())]
+    if len(mrz_lines) >= 2:
+        return mrz_lines[:2]
+    return []
 
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
     st.header("Add picture of USA passport")
-    st.subheader("Pic can be any orientation or any file format.  But must be USA passport")
+    st.subheader("Pic can be any orientation or any file format. But must be USA passport")
     image_file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg', 'pdf'])
 
     if image_file is not None:
@@ -175,11 +88,14 @@ def main():
                     img_sharpened_bytes = buffered.getvalue()
                     extracted_text = perform_ocr(img_sharpened_bytes)
 
-                    # Display the extracted text
-                    st.subheader('Extracted Text:')
-                    st.markdown(extracted_text)
-                except Exception as e:
-                    st.error(f"Error: {e}")
+                    # Extract and display the MRZ
+                    mrz_lines = extract_mrz(extracted_text)
+                    if mrz_lines:
+                        st.subheader('Extracted MRZ:')
+                        st.text("\n".join(mrz_lines))
+                    else:
+                        st.error("MRZ not found in the extracted text.")
+
 
 if __name__ == "__main__":
     main()
