@@ -78,7 +78,7 @@ def main():
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
 
-        if st.button("Extract Text"):
+         if st.button("Extract Text"):
             with st.spinner('Extracting...'):
                 try:
                     # Perform OCR
@@ -95,7 +95,8 @@ def main():
                         st.text("\n".join(mrz_lines))
                     else:
                         st.error("MRZ not found in the extracted text.")
-
+                except Exception as e:
+                    st.error(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
