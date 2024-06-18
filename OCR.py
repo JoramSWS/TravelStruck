@@ -47,9 +47,12 @@ def perform_ocr(image_content):
         # Extract given name
         givenname = extract_givenname(full_text)
         
-        return passport_number, surname, givenname
+        # Extract nationality
+        nationality = extract_nationality(full_text)
+
+        return passport_number, surname, givenname, nationality
     
-    return "", "", ""
+    return "", "", "", ""
 
 def extract_passport_number(full_text):
     # Find the starting index of "No. de Pasaporte"
@@ -87,6 +90,18 @@ def extract_givenname(full_text):
             # Extract the text between "Nombres" and "Nationality"
             givenname = full_text[start_index + len("Nombres"):nationality_index].strip()
             return givenname
+    return ""
+
+def extract_nationality(full_text):
+    # Find the starting index of "Nacionalidad"
+    start_index = full_text.find("Nacionalidad")
+    if start_index != -1:
+        # Find the starting index of "Date of birth" after "Nacionalidad"
+        dateofbirth_index = full_text.find("Date of birth", start_index)
+        if dateofbirth_index != -1:
+            # Extract the text between "Nacionalidad" and "Date of birth"
+            nationality = full_text[start_index + len("Nombres"):dateofbirth_index].strip()
+            return nationality
     return ""
 
 def main():
