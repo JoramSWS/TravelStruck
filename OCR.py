@@ -56,15 +56,17 @@ def extract_mrz(text):
         return [mrz_line_1, mrz_line_2]
     return []
 
-def extract_issuing_country_and_name(mrz_line):
+def extract_mrz_info(mrz_line):
     if mrz_line.startswith("P<") and len(mrz_line) > 5:
         issuing_country = mrz_line[2:5]  # Extract 3 characters after "P<"
         name_part = mrz_line[5:]
         name_end_index = name_part.find("<<")
         if name_end_index != -1:
-            name = name_part[:name_end_index].replace("<", " ").strip()
-            return issuing_country, name
-    return "", ""
+            surname = name_part[:name_end_index].replace("<", " ").strip()
+            given_name_part = name_part[name_end_index + 2:]  # Skip "<<"
+            given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
+            return issuing_country, surname, given_name
+    return "", "", ""
 
 def main():
     # Streamlit App
@@ -110,12 +112,14 @@ def main():
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
-                        issuing_country, name = extract_issuing_country_and_name(mrz_lines[0])
+                        issuing_country, surname, given_name = extract_mrz_info(mrz_lines[0])
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
-                        st.subheader('Name:')
-                        st.text(name)
+                        st.subheader('Surname:')
+                        st.text(surname)
                         st.subheader('Extracted MRZ:')
+                        st.subheader('Given Name')
+                        st.text(given_name)
                         st.text("\n".join(mrz_lines))
                         st.error("MRZ not found in the extracted text.")
                 except Exception as e:
