@@ -80,15 +80,16 @@ def extract_mrz_info(mrz_lines):
     
     # Process the second MRZ line
     mrz_line_2 = mrz_lines[1]
-    passport_number, check_digit_from_mrz = "", ""
-    if mrz_line_2 and len(mrz_line_2) > 9:
+    passport_number, check_digit_from_mrz, nationality = "", "", ""
+    if mrz_line_2 and len(mrz_line_2) > 12:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
         check_digit_from_mrz = mrz_line_2[9]  # Extract the 10th character (check digit)
+        nationality = mrz_line_2[10:13]  # Extract the next 3 characters for nationality
     
     # Calculate the check digit for the passport number
     calculated_check_digit = calculate_check_digit(passport_number)
     
-    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit
+    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality
 
 def main():
     # Streamlit App
@@ -134,7 +135,7 @@ def main():
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
-                        issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit = extract_mrz_info(mrz_lines)
+                        issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality = extract_mrz_info(mrz_lines)
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
                         st.subheader('Surname:')
@@ -146,7 +147,9 @@ def main():
                         if check_digit_from_mrz != str(calculated_check_digit):
                             st.text("Error: The check digit does not match!")
                         else:
-                            st.text("The check digit is correct.")
+                            st.text("Passport Number extraction verified.")
+                        st.subheader('Nationality')
+                        st.text(nationality)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
 
