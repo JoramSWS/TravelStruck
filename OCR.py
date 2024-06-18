@@ -42,9 +42,18 @@ def perform_ocr(image_content):
 
 def extract_mrz(text):
     lines = text.split('\n')
-    mrz_lines = [line for line in lines if line.startswith("P<") or (line and line[0].isdigit())]
-    if len(mrz_lines) >= 2:
-        return mrz_lines[:2]
+    mrz_line_1 = None
+    mrz_line_2 = None
+    
+    for line in lines:
+        if mrz_line_1 is None and line.startswith("P<"):
+            mrz_line_1 = line
+        elif mrz_line_1 is not None and mrz_line_2 is None and all(c.isalnum() or c == '<' for c in line):
+            mrz_line_2 = line
+            break
+
+    if mrz_line_1 and mrz_line_2:
+        return [mrz_line_1, mrz_line_2]
     return []
 
 def main():
