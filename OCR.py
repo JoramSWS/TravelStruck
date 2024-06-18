@@ -78,7 +78,7 @@ def main():
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
 
-         if st.button("Extract Text"):
+        if st.button("Extract Text"):
             with st.spinner('Extracting...'):
                 try:
                     # Perform OCR
