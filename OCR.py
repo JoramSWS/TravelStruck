@@ -95,8 +95,7 @@ def main():
                         st.text("\n".join(mrz_lines))
                     else:
                         st.error("MRZ not found in the extracted text.")
-                except Exception as e:
-                    st.error(f"Error: {e}")
+
 
 if __name__ == "__main__":
     main()
