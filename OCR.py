@@ -55,7 +55,7 @@ def main():
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
-        img_contrasted = contrast_enhancer.enhance(2.0)  # Increase contrast by a factor of 2
+        img_contrasted = contrast_enhancer.enhance(1.5)  # Increase contrast by a factor of 1.5
 
         # Enhance the sharpness of the image
         sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
