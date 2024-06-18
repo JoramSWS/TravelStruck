@@ -32,8 +32,47 @@ def perform_ocr(image_content):
     response_data = response.json()
     if 'error' in response_data:
         raise Exception(response_data['error']['message'])
+    
+    # Extract all text annotations
     texts = response_data['responses'][0].get('textAnnotations', [])
-    return texts[0]['description'] if texts else ""
+    if texts:
+        full_text = texts[0]['description']
+        
+        # Extract passport number
+        passport_number = extract_passport_number(full_text)
+        
+        # Extract surname after "Apellidos"
+        surname = extract_surname(full_text)
+        
+        return passport_number, surname
+    
+    return "", ""
+
+def extract_passport_number(full_text):
+    # Find the starting index of "No. de Pasaporte"
+    start_index = full_text.find("No. de Pasaporte")
+    if start_index != -1:
+        # Extract the passport number following "No. de Pasaporte"
+        passport_number = ""
+        for char in full_text[start_index + len("No. de Pasaporte"):].strip():
+            if char.isdigit():
+                passport_number += char
+            elif passport_number:  # Stop if we encounter a non-digit after starting to collect digits
+                break
+        return passport_number
+    return ""
+
+def extract_surname(full_text):
+    # Find the starting index of "Apellidos"
+    start_index = full_text.find("Apellidos")
+    if start_index != -1:
+        # Find the end of the line after "Apellidos"
+        end_index = full_text.find("\n", start_index)
+        if end_index != -1:
+            # Extract the surname
+            surname = full_text[start_index + len("Apellidos"):end_index].strip()
+            return surname
+    return ""
 
 def main():
     # Streamlit App
