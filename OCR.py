@@ -125,7 +125,7 @@ def main():
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
-                        issuing_country, surname, given_name, passport_number = extract_mrz_info(mrz_lines[0])
+                        issuing_country, surname, given_name, passport_number = extract_mrz_info(mrz_lines)
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
                         st.subheader('Surname:')
