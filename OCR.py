@@ -236,7 +236,7 @@ def main():
                         st.text(formatted_expiration_date)
                         if months_until is not None and months_until < 6:
                             st.text(f"EXP IS LESS THAN 6 MONTHS AWAY! It is {months_until} months away.")
-                            else:
+                        else:
                             st.text("Expiration date is more than 6 months from today.")
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
