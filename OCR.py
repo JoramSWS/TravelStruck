@@ -71,7 +71,7 @@ def calculate_check_digit(data):
 
 def extract_mrz_info(ocr_text):
     # Split the text into lines and clean up spaces
-    lines = [line.replace(" ", "") for line in ocr_text.splitlines()]
+    lines = [line.replace(" ", "") for line in ocr_text.split('\n')]
     
     # Identify the MRZ lines
     mrz_line_1 = next((line for line in lines if line.startswith("P<")), "")
@@ -166,13 +166,14 @@ def main():
                     img_sharpened.save(buffered, format="PNG")
                     img_sharpened_bytes = buffered.getvalue()
                     extracted_text = perform_ocr(img_sharpened_bytes)
-
+        
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
-                        issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
+                        (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
+                         calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
+                         calculated_dob_check_digit) = extract_mrz_info("\n".join(mrz_lines))
                         
-                        # After extracting MRZ info and calculating formatted_date_of_birth
                         formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
                         age = calculate_age(dob_datetime)
                         
@@ -193,12 +194,12 @@ def main():
                         st.subheader('Date of Birth:')
                         st.text(date_of_birth)
                         st.text(formatted_date_of_birth)
+                        st.subheader('Age:')
+                        st.text(age)
                         if dob_check_digit != str(calculated_dob_check_digit):
                             st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
                         else:
                             st.text("Date of Birth extraction verified.")
-                        st.subheader('Age:')
-                        st.text(age)
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
