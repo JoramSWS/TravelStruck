@@ -175,7 +175,7 @@ def main():
                     if mrz_lines:
                         (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
                          calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
-                         calculated_dob_check_digit) = extract_mrz_info("\n".join(mrz_lines))
+                         calculated_dob_check_digit, sex) = extract_mrz_info("\n".join(mrz_lines))
                         
                         formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
                         age = calculate_age(dob_datetime)
@@ -204,7 +204,7 @@ def main():
                         else:
                             st.text("Date of Birth extraction verified.")
                         st.subheader('Sex:')
-                        st.text(sex)    
+                        st.text(sex)
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
