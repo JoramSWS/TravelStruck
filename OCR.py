@@ -62,15 +62,12 @@ def calculate_check_digit(data):
     total = sum(int(char) * weights[i % len(weights)] for i, char in enumerate(data))
     return total % 10
 
-def extract_mrz_info(full_text):
-    lines = full_text.split('\n')
-    mrz_lines = [line for line in lines if line.strip()]  # Remove empty lines
-    
+def extract_mrz_info(mrz_lines):
     if len(mrz_lines) < 2:
         return "", "", "", "", "", "", "", ""
 
     # Process the first MRZ line
-    mrz_line_1 = mrz_lines[0]
+    mrz_line_1 = mrz_lines[0][-44:]
     issuing_country, surname, given_name = "", "", ""
     
     if mrz_line_1.startswith("P<") and len(mrz_line_1) > 5:
@@ -83,7 +80,7 @@ def extract_mrz_info(full_text):
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
     
     # Process the second MRZ line
-    mrz_line_2 = mrz_lines[-1].replace(" ", "")  # Take the last line and remove spaces
+    mrz_line_2 = mrz_lines[1][-44:]
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
     if mrz_line_2 and len(mrz_line_2) > 19:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
@@ -177,7 +174,6 @@ def main():
                         st.text(formatted_date_of_birth)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
-                        st.text(extracted_text)
 
 
                 except Exception as e:
