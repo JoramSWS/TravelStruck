@@ -108,14 +108,19 @@ def extract_mrz_info(ocr_text):
             calculated_dob_check_digit, sex, expiration_date)
 
 
-def format_date(date_str, is_dob=True):
+def format_date_of_birth(date_of_birth):
     try:
-        year = int(date_str[:2]) + 2000 if is_dob else int(date_str[:2]) + 1900
-        date_obj = datetime.strptime(f"{year}{date_str[2:]}", "%Y%m%d")
-        formatted_date = date_obj.strftime("%B/%d/%Y")
-        return formatted_date, date_obj
+        dob_year = int(date_of_birth[:2])
+        current_year = datetime.now().year % 100
+        if dob_year > current_year:
+            dob_year += 1900
+        else:
+            dob_year += 2000
+        dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
+        formatted_date = dob_datetime.strftime("%B/%d/%Y")
+        return formatted_date
     except ValueError:
-        return "Invalid Date", None
+        return "Invalid Date"
         
 def calculate_age(birth_date):
     today = datetime.today()
