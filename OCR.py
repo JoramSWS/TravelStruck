@@ -68,14 +68,17 @@ def calculate_check_digit(data):
             total += 0
     return total % 10
 
-def extract_mrz_info(mrz_lines):
-    if len(mrz_lines) != 2:
-        return "", "", "", "", "", "", "", ""
 
-    # Process the first MRZ line
-    mrz_line_1 = mrz_lines[0]
-    issuing_country, surname, given_name = "", "", ""
+def extract_mrz_info(ocr_text):
+    # Split the text into lines and clean up spaces
+    lines = [line.replace(" ", "") for line in ocr_text.splitlines()]
     
+    # Identify the MRZ lines
+    mrz_line_1 = next((line for line in lines if line.startswith("P<")), "")
+    mrz_line_2 = lines[-1] if lines else ""
+    
+    # Process the first MRZ line
+    issuing_country, surname, given_name = "", "", ""
     if mrz_line_1.startswith("P<") and len(mrz_line_1) > 5:
         issuing_country = mrz_line_1[2:5]  # Extract 3 characters after "P<"
         name_part = mrz_line_1[5:]
@@ -86,7 +89,6 @@ def extract_mrz_info(mrz_lines):
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
     
     # Process the second MRZ line
-    mrz_line_2 = mrz_lines[-1].replace(" ", "")  # Take the last line and remove spaces
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
     if mrz_line_2 and len(mrz_line_2) > 19:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
@@ -97,7 +99,7 @@ def extract_mrz_info(mrz_lines):
     # Calculate the check digit for the passport number
     calculated_check_digit = calculate_check_digit(passport_number)
     
-    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth
+    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, nationality, date_of_birth
 
 def format_date_of_birth(date_of_birth):
     try:
