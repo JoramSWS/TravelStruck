@@ -136,7 +136,7 @@ def main():
                     extracted_text = perform_ocr(img_sharpened_bytes)
 
                     # Extract and display the MRZ
-                    mrz_lines = extract_mrz(extracted_text)
+                    mrz_lines = extract_mrz_info(extracted_text)
                     if mrz_lines:
                         issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
                         
