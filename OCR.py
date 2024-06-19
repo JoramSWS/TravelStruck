@@ -62,8 +62,11 @@ def calculate_check_digit(data):
     total = sum(int(char) * weights[i % len(weights)] for i, char in enumerate(data))
     return total % 10
 
-def extract_mrz_info(mrz_lines):
-    if len(mrz_lines) != 2:
+def extract_mrz_info(full_text):
+    lines = full_text.split('\n')
+    mrz_lines = [line for line in lines if line.strip()]  # Remove empty lines
+    
+    if len(mrz_lines) < 2:
         return "", "", "", "", "", "", "", ""
 
     # Process the first MRZ line
@@ -159,22 +162,24 @@ def main():
                         st.text(issuing_country)
                         st.subheader('Surname:')
                         st.text(surname)
-                        st.subheader('Given Name:')
+                        st.subheader('Given Name')
                         st.text(given_name)
-                        st.subheader('Passport Number:')
+                        st.subheader('Passport Number')
                         st.text(passport_number)
                         if check_digit_from_mrz != str(calculated_check_digit):
                             st.text("Error: The check digit does not match!")
                         else:
                             st.text("Passport Number extraction verified.")
-                        st.subheader('Nationality:')
+                        st.subheader('Nationality')
                         st.text(nationality)
-                        st.subheader('Date of Birth:')
+                        st.subheader('Date of Birth')
                         st.text(date_of_birth)
                         st.text(formatted_date_of_birth)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
+
+
                 except Exception as e:
                     st.error(f"Error: {e}")
 
