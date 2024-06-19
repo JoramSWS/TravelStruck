@@ -67,7 +67,7 @@ def extract_mrz_info(mrz_lines):
         return "", "", "", "", "", "", "", ""
 
     # Process the first MRZ line
-    mrz_line_1 = mrz_lines[0]
+    mrz_line_1 = mrz_lines[0][-44:]
     issuing_country, surname, given_name = "", "", ""
     
     if mrz_line_1.startswith("P<") and len(mrz_line_1) > 5:
@@ -80,7 +80,7 @@ def extract_mrz_info(mrz_lines):
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
     
     # Process the second MRZ line
-    mrz_line_2 = mrz_lines[1]
+    mrz_line_2 = mrz_lines[1][-44:]
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
     if mrz_line_2 and len(mrz_line_2) > 19:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
@@ -123,15 +123,15 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.5
+        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.0
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
-        img_contrasted = contrast_enhancer.enhance(1.0)  # Increase contrast by a factor of 1.5
+        img_contrasted = contrast_enhancer.enhance(1.0)  # Increase contrast by a factor of 1.0
 
         # Enhance the sharpness of the image
         sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
-        img_sharpened = sharpness_enhancer.enhance(1.0)  # Increase sharpness by a factor of 2
+        img_sharpened = sharpness_enhancer.enhance(2.0)  # Increase sharpness by a factor of 2
         
         img_array = np.array(img_sharpened)
 
@@ -170,8 +170,8 @@ def main():
                         st.subheader('Nationality')
                         st.text(nationality)
                         st.subheader('Date of Birth')
-                        st.text({date_of_birth})
-                        st.text({formatted_date_of_birth})    
+                        st.text(date_of_birth)
+                        st.text(formatted_date_of_birth)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
 
