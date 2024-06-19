@@ -110,18 +110,7 @@ def extract_mrz_info(ocr_text):
 
 def format_date(date_str, is_dob=True):
     try:
-        year = int(date_str[:2])
-        current_year = datetime.now().year % 100
-        if is_dob:
-            if year > current_year:
-                year += 1900
-            else:
-                year += 2000
-        else:
-            if year < current_year:
-                year += 2000
-            else:
-                year += 1900
+        year = int(date_str[:2]) + 2000 if is_dob else int(date_str[:2]) + 1900
         date_obj = datetime.strptime(f"{year}{date_str[2:]}", "%Y%m%d")
         formatted_date = date_obj.strftime("%B/%d/%Y")
         return formatted_date, date_obj
