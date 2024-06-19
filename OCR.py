@@ -63,7 +63,7 @@ def calculate_check_digit(data):
     return total % 10
 
 def extract_mrz_info(mrz_lines):
-    if len(mrz_lines) < 2:
+    if len(mrz_lines) != 2:
         return "", "", "", "", "", "", "", ""
 
     # Process the first MRZ line
@@ -80,7 +80,7 @@ def extract_mrz_info(mrz_lines):
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
     
     # Process the second MRZ line
-    mrz_line_2 = mrz_lines[1]
+    mrz_line_2 = mrz_lines[-1].replace(" ", "")  # Take the last line and remove spaces
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
     if mrz_line_2 and len(mrz_line_2) > 19:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
@@ -123,11 +123,11 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.5
+        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.0
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
-        img_contrasted = contrast_enhancer.enhance(1.5)  # Increase contrast by a factor of 1.5
+        img_contrasted = contrast_enhancer.enhance(1.0)  # Increase contrast by a factor of 1.0
 
         # Enhance the sharpness of the image
         sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
@@ -159,23 +159,22 @@ def main():
                         st.text(issuing_country)
                         st.subheader('Surname:')
                         st.text(surname)
-                        st.subheader('Given Name')
+                        st.subheader('Given Name:')
                         st.text(given_name)
-                        st.subheader('Passport Number')
+                        st.subheader('Passport Number:')
                         st.text(passport_number)
                         if check_digit_from_mrz != str(calculated_check_digit):
                             st.text("Error: The check digit does not match!")
                         else:
                             st.text("Passport Number extraction verified.")
-                        st.subheader('Nationality')
+                        st.subheader('Nationality:')
                         st.text(nationality)
-                        st.subheader('Date of Birth')
-                        st.text({date_of_birth})
-                        st.text({formatted_date_of_birth})    
+                        st.subheader('Date of Birth:')
+                        st.text(date_of_birth)
+                        st.text(formatted_date_of_birth)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
-
-
+                        st.text(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
 
