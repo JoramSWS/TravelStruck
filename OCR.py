@@ -38,19 +38,32 @@ def perform_ocr(image_content):
     texts = response_data['responses'][0].get('textAnnotations', [])
     if texts:
         full_text = texts[0]['description']
-        return full_text, response_data
-    return "", response_data
+        return full_text
+    return ""
+
+def extract_mrz(text):
+    lines = text.split('\n')
+    mrz_line_1 = None
+    mrz_line_2 = None
+    
+    for line in lines:
+        if mrz_line_1 is None and line.startswith("P<"):
+            mrz_line_1 = line
+        elif mrz_line_1 is not None and mrz_line_2 is None and all(c.isalnum() or c == '<' for c in line):
+            mrz_line_2 = line
+            break
+
+    if mrz_line_1 and mrz_line_2:
+        return [mrz_line_1, mrz_line_2]
+    return []
 
 def calculate_check_digit(data):
     weights = [7, 3, 1]
     total = sum(int(char) * weights[i % len(weights)] for i, char in enumerate(data))
     return total % 10
 
-def extract_mrz_info(full_text):
-    lines = full_text.split('\n')
-    mrz_lines = [line for line in lines if line.strip()]  # Remove empty lines
-    
-    if len(mrz_lines) < 2:
+def extract_mrz_info(mrz_lines):
+    if len(mrz_lines) != 2:
         return "", "", "", "", "", "", "", ""
 
     # Process the first MRZ line
@@ -146,24 +159,22 @@ def main():
                         st.text(issuing_country)
                         st.subheader('Surname:')
                         st.text(surname)
-                        st.subheader('Given Name')
+                        st.subheader('Given Name:')
                         st.text(given_name)
-                        st.subheader('Passport Number')
+                        st.subheader('Passport Number:')
                         st.text(passport_number)
                         if check_digit_from_mrz != str(calculated_check_digit):
                             st.text("Error: The check digit does not match!")
                         else:
                             st.text("Passport Number extraction verified.")
-                        st.subheader('Nationality')
+                        st.subheader('Nationality:')
                         st.text(nationality)
-                        st.subheader('Date of Birth')
+                        st.subheader('Date of Birth:')
                         st.text(date_of_birth)
                         st.text(formatted_date_of_birth)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
-
-
                 except Exception as e:
                     st.error(f"Error: {e}")
 
