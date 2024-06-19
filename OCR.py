@@ -44,17 +44,18 @@ def perform_ocr(image_content):
 def extract_mrz(text):
     lines = text.split('\n')
     mrz_line_1 = None
-    mrz_line_2 = lines[-1]  # The last line in the extracted text
+    mrz_line_2 = None
 
     for line in lines:
-        if line.startswith("P<"):
-            mrz_line_1 = line
-            break
+        cleaned_line = line.replace(" ", "")
+        if cleaned_line.startswith("P<"):
+            mrz_line_1 = cleaned_line
+        elif len(cleaned_line) == 44 and cleaned_line != mrz_line_1:
+            mrz_line_2 = cleaned_line
 
     if mrz_line_1 and mrz_line_2:
         return [mrz_line_1, mrz_line_2]
     return []
-
 
 def calculate_check_digit(data):
     weights = [7, 3, 1]
@@ -68,14 +69,13 @@ def calculate_check_digit(data):
             total += 0
     return total % 10
 
-
 def extract_mrz_info(ocr_text):
     # Split the text into lines and clean up spaces
     lines = [line.replace(" ", "") for line in ocr_text.splitlines()]
     
     # Identify the MRZ lines
     mrz_line_1 = next((line for line in lines if line.startswith("P<")), "")
-    mrz_line_2 = lines[-1] if lines else ""
+    mrz_line_2 = next((line for line in lines if len(line) == 44 and not line.startswith("P<")), "")
     
     # Process the first MRZ line
     issuing_country, surname, given_name = "", "", ""
@@ -89,17 +89,24 @@ def extract_mrz_info(ocr_text):
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
     
     # Process the second MRZ line
-    passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
-    if mrz_line_2 and len(mrz_line_2) > 19:
+    passport_number, check_digit_from_mrz, nationality, date_of_birth, dob_check_digit, sex, expiration_date = "", "", "", "", "", "", ""
+    if mrz_line_2 and len(mrz_line_2) > 27:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
         check_digit_from_mrz = mrz_line_2[9]  # Extract the 10th character (check digit)
         nationality = mrz_line_2[10:13]  # Extract the next 3 characters for nationality
         date_of_birth = mrz_line_2[13:19]  # Extract the next 6 characters for date of birth
+        dob_check_digit = mrz_line_2[19]  # Extract the 20th character (DOB check digit)
+        sex = mrz_line_2[20]  # Extract the 21st character for sex
+        expiration_date = mrz_line_2[21:27]  # Extract the next 6 characters for expiration date
     
     # Calculate the check digit for the passport number
     calculated_check_digit = calculate_check_digit(passport_number)
+    calculated_dob_check_digit = calculate_check_digit(date_of_birth)
     
-    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, nationality, date_of_birth
+    return (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
+            calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
+            calculated_dob_check_digit, sex, expiration_date)
+
 
 def format_date_of_birth(date_of_birth):
     try:
@@ -111,6 +118,20 @@ def format_date_of_birth(date_of_birth):
             dob_year += 2000
         dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
         formatted_date = dob_datetime.strftime("%B/%d/%Y")
+        return formatted_date, dob_datetime
+    except ValueError:
+        return "Invalid Date", None
+        
+def calculate_age(birth_date):
+    today = datetime.today()
+    age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+    return age
+
+def format_expiration_date(expiration_date, dob_datetime):
+    try:
+        exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
+        exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%Y%m%d")
+        formatted_date = exp_datetime.strftime("%B/%d/%Y")
         return formatted_date
     except ValueError:
         return "Invalid Date"
@@ -131,7 +152,7 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.0
+        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.0
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
@@ -155,13 +176,18 @@ def main():
                     img_sharpened.save(buffered, format="PNG")
                     img_sharpened_bytes = buffered.getvalue()
                     extracted_text = perform_ocr(img_sharpened_bytes)
-
+        
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
-                        issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
+                        (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
+                         calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
+                         calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
                         
-                        formatted_date_of_birth = format_date_of_birth(date_of_birth)
+                        formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
+                        formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
+                        
+                        age = calculate_age(dob_datetime)
                         
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
@@ -179,7 +205,18 @@ def main():
                         st.text(nationality)
                         st.subheader('Date of Birth:')
                         st.text(date_of_birth)
-                        st.text(formatted_date_of_birth)    
+                        st.text(formatted_date_of_birth)
+                        st.subheader('Age:')
+                        st.text(age)
+                        if dob_check_digit != str(calculated_dob_check_digit):
+                            st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
+                        else:
+                            st.text("Date of Birth extraction verified.")
+                        st.subheader('Sex:')
+                        st.text(sex)
+                        st.subheader('Expiration Date:')
+                        st.text(expiration_date)
+                        st.text(formatted_expiration_date)
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
