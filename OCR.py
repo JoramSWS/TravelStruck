@@ -162,7 +162,7 @@ def main():
                         formatted_date_of_birth = format_date_of_birth(date_of_birth)
                         
                         st.subheader('Issuing Country:')
-                        st.text(issuing_country)
+                        st.markdown(issuing_country)
                         st.subheader('Surname:')
                         st.text(surname)
                         st.subheader('Given Name:')
