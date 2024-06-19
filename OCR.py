@@ -143,6 +143,8 @@ def months_until_expiration(expiration_date):
         exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
         exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%y%m%d")
         today = datetime.now()
+        if exp_datetime < today:
+            return -1  # Expiration date has passed
         delta = relativedelta(exp_datetime, today)
         months_until = delta.months + delta.years * 12
         return months_until
@@ -203,7 +205,7 @@ def main():
                         
                         age = calculate_age(dob_datetime)
 
-                         # Calculate months until expiration
+                        # Calculate months until expiration
                         months_until = months_until_expiration(expiration_date)
 
                         st.subheader('Issuing Country:')
@@ -234,10 +236,13 @@ def main():
                         st.subheader('Expiration Date:')
                         st.text(expiration_date)
                         st.text(formatted_expiration_date)
-                        if months_until is not None and months_until < 6:
-                            st.text(f"EXP IS LESS THAN 6 MONTHS AWAY! It is {months_until} months away.")
-                        else:
-                            st.text("Expiration date is more than 6 months from today.")
+                        if months_until is not None:
+                            if months_until == -1:
+                                st.warning("Expiration date has already passed.")
+                            elif months_until < 6:
+                                st.warning(f"Expiration date is less than 6 months away. It is {months_until} months away.")
+                            else:
+                                st.text("Expiration date is more than 6 months from today.")
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
