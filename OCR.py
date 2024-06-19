@@ -34,8 +34,12 @@ def perform_ocr(image_content):
     if 'error' in response_data:
         raise Exception(response_data['error']['message'])
     
-    return response_data
-
+    # Extract all text annotations
+    texts = response_data['responses'][0].get('textAnnotations', [])
+    if texts:
+        full_text = texts[0]['description']
+        return full_text
+    return ""
 
 def extract_mrz(text):
     lines = text.split('\n')
@@ -55,11 +59,18 @@ def extract_mrz(text):
 
 def calculate_check_digit(data):
     weights = [7, 3, 1]
-    total = sum(int(char) * weights[i % len(weights)] for i, char in enumerate(data))
+    total = 0
+    for i, char in enumerate(data):
+        if char.isdigit():
+            total += int(char) * weights[i % len(weights)]
+        elif char.isalpha():
+            total += (ord(char) - 55) * weights[i % len(weights)]
+        elif char == '<':
+            total += 0
     return total % 10
 
 def extract_mrz_info(mrz_lines):
-    if len(mrz_lines) < 2:
+    if len(mrz_lines) != 2:
         return "", "", "", "", "", "", "", ""
 
     # Process the first MRZ line
@@ -76,14 +87,14 @@ def extract_mrz_info(mrz_lines):
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
     
     # Process the second MRZ line
-    mrz_line_2 = mrz_lines[1]
+    mrz_line_2 = mrz_lines[-1].replace(" ", "")  # Take the last line and remove spaces
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
     if mrz_line_2 and len(mrz_line_2) > 19:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
         check_digit_from_mrz = mrz_line_2[9]  # Extract the 10th character (check digit)
         nationality = mrz_line_2[10:13]  # Extract the next 3 characters for nationality
         date_of_birth = mrz_line_2[13:19]  # Extract the next 6 characters for date of birth
-
+    
     # Calculate the check digit for the passport number
     calculated_check_digit = calculate_check_digit(passport_number)
     
@@ -160,7 +171,7 @@ def main():
                         st.subheader('Passport Number:')
                         st.text(passport_number)
                         if check_digit_from_mrz != str(calculated_check_digit):
-                            st.text("Error: The check digit does not match!")
+                            st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
                         else:
                             st.text("Passport Number extraction verified.")
                         st.subheader('Nationality:')
