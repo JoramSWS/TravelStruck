@@ -237,7 +237,7 @@ def main():
                         st.text(expiration_date)
                         st.text(formatted_expiration_date)
                         if months_until is not None:
-                            if months_until == -1:
+                            if months_until < -1:
                                 st.text("Expiration date has already passed.")
                             elif months_until < 6:
                                 st.text(f"Expiration date is less than 6 months away. It is {months_until} months away.")
