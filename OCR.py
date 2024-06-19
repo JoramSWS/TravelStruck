@@ -186,7 +186,7 @@ def main():
                          calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
                         
                         formatted_date_of_birth = format_date_of_birth(date_of_birth)
-                        formatted_expiration_date = format_expiration_date(expiration_date)
+                        formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
                         
                         age = calculate_age(dob_datetime)
                         
