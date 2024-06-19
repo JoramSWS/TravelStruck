@@ -44,18 +44,17 @@ def perform_ocr(image_content):
 def extract_mrz(text):
     lines = text.split('\n')
     mrz_line_1 = None
-    mrz_line_2 = None
-    
+    mrz_line_2 = lines[-1]  # The last line in the extracted text
+
     for line in lines:
-        if mrz_line_1 is None and line.startswith("P<"):
+        if line.startswith("P<"):
             mrz_line_1 = line
-        elif mrz_line_1 is not None and mrz_line_2 is None and all(c.isalnum() or c == '<' for c in line):
-            mrz_line_2 = line
             break
 
     if mrz_line_1 and mrz_line_2:
         return [mrz_line_1, mrz_line_2]
     return []
+
 
 def calculate_check_digit(data):
     weights = [7, 3, 1]
