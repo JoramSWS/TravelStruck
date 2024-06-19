@@ -69,8 +69,13 @@ def calculate_check_digit(data):
             total += 0
     return total % 10
 
-def extract_mrz_info(mrz_lines):
-    mrz_line_1, mrz_line_2 = mrz_lines
+def extract_mrz_info(ocr_text):
+    # Split the text into lines and clean up spaces
+    lines = [line.replace(" ", "") for line in ocr_text.splitlines()]
+    
+    # Identify the MRZ lines
+    mrz_line_1 = next((line for line in lines if line.startswith("P<")), "")
+    mrz_line_2 = next((line for line in lines if len(line) == 44 and not line.startswith("P<")), "")
     
     # Process the first MRZ line
     issuing_country, surname, given_name = "", "", ""
@@ -85,17 +90,23 @@ def extract_mrz_info(mrz_lines):
     
     # Process the second MRZ line
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
-    if len(mrz_line_2) == 44:
+    dob_check_digit, calculated_dob_check_digit = "", ""
+    if mrz_line_2 and len(mrz_line_2) > 19:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
         check_digit_from_mrz = mrz_line_2[9]  # Extract the 10th character (check digit)
         nationality = mrz_line_2[10:13]  # Extract the next 3 characters for nationality
         date_of_birth = mrz_line_2[13:19]  # Extract the next 6 characters for date of birth
+        dob_check_digit = mrz_line_2[19]  # Extract the 20th character (DOB check digit)
+        
+        # Calculate the check digit for the passport number
+        calculated_check_digit = calculate_check_digit(passport_number)
+        
+        # Calculate the check digit for the date of birth
+        calculated_dob_check_digit = calculate_check_digit(date_of_birth)
     
-    # Calculate the check digit for the passport number
-    calculated_check_digit = calculate_check_digit(passport_number)
+    return (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
+            calculated_check_digit, nationality, date_of_birth, dob_check_digit, calculated_dob_check_digit)
     
-    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth
-
 def format_date_of_birth(date_of_birth):
     try:
         dob_year = int(date_of_birth[:2])
@@ -161,7 +172,7 @@ def main():
                     if mrz_lines:
                         issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
                         
-                        # After formatted_date_of_birth assignment
+                        # After extracting MRZ info and calculating formatted_date_of_birth
                         formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
                         age = calculate_age(dob_datetime)
                         
@@ -182,6 +193,10 @@ def main():
                         st.subheader('Date of Birth:')
                         st.text(date_of_birth)
                         st.text(formatted_date_of_birth)
+                        if dob_check_digit != str(calculated_dob_check_digit):
+                            st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
+                        else:
+                            st.text("Date of Birth extraction verified.")
                         st.subheader('Age:')
                         st.text(age)
                         st.subheader('Extracted MRZ:')
