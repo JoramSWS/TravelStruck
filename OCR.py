@@ -108,17 +108,23 @@ def extract_mrz_info(ocr_text):
             calculated_dob_check_digit, sex, expiration_date)
 
 
-def format_date_of_birth(date_of_birth):
+def format_date(date_str, is_dob=True):
     try:
-        dob_year = int(date_of_birth[:2])
+        year = int(date_str[:2])
         current_year = datetime.now().year % 100
-        if dob_year > current_year:
-            dob_year += 1900
+        if is_dob:
+            if year > current_year:
+                year += 1900
+            else:
+                year += 2000
         else:
-            dob_year += 2000
-        dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
-        formatted_date = dob_datetime.strftime("%B/%d/%Y")
-        return formatted_date, dob_datetime
+            if year < current_year:
+                year += 2000
+            else:
+                year += 1900
+        date_obj = datetime.strptime(f"{year}{date_str[2:]}", "%Y%m%d")
+        formatted_date = date_obj.strftime("%B/%d/%Y")
+        return formatted_date, date_obj
     except ValueError:
         return "Invalid Date", None
         
@@ -175,9 +181,9 @@ def main():
                          calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
                          calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
                         
-                        formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
-                        age = calculate_age(dob_datetime)
-                        formatted_expiration_date, _ = format_date_of_birth(expiration_date)
+                        formatted_date_of_birth, dob_datetime = format_date(date_of_birth)
+                        formatted_expiration_date, _ = format_date(expiration_date, is_dob=False)
+
                         
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
