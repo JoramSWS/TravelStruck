@@ -162,7 +162,7 @@ def main():
                         formatted_date_of_birth = format_date_of_birth(date_of_birth)
                         
                         st.subheader('Issuing Country:')
-                        st.markdown(issuing_country)
+                        st.text(issuing_country)
                         st.subheader('Surname:')
                         st.text(surname)
                         st.subheader('Given Name:')
@@ -180,7 +180,7 @@ def main():
                         st.text(formatted_date_of_birth)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
-                      
+                        st.text(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
 
