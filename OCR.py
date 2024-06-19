@@ -23,7 +23,7 @@ def perform_ocr(image_content):
                 },
                 "features": [
                     {
-                        "type": "DOCUMENT_TEXT_DETECTION"
+                        "type": "TEXT_DETECTION"
                     }
                 ]
             }
@@ -44,17 +44,16 @@ def perform_ocr(image_content):
 def extract_mrz(text):
     lines = text.split('\n')
     mrz_line_1 = None
-    mrz_line_2 = lines[-1]  # The last line in the extracted text
+    mrz_line_2 = lines[-1].replace(" ", "")  # The last line in the extracted text
 
     for line in lines:
         if line.startswith("P<"):
-            mrz_line_1 = line
+            mrz_line_1 = line.replace(" ", "")
             break
 
     if mrz_line_1 and mrz_line_2:
         return [mrz_line_1, mrz_line_2]
     return []
-
 
 def calculate_check_digit(data):
     weights = [7, 3, 1]
@@ -68,15 +67,11 @@ def calculate_check_digit(data):
             total += 0
     return total % 10
 
+def extract_mrz_info(mrz_lines):
+    if len(mrz_lines) != 2:
+        return "", "", "", "", "", "", "", ""
 
-def extract_mrz_info(ocr_text):
-    # Split the text into lines and clean up spaces
-    lines = [line.replace(" ", "") for line in ocr_text.splitlines()]
-    
-    # Identify the MRZ lines
-    mrz_line_1 = next((line for line in lines if line.startswith("P<")), "")
-    mrz_line_2 = lines[-1] if lines else ""
-    
+    mrz_line_1, mrz_line_2 = mrz_lines
     # Process the first MRZ line
     issuing_country, surname, given_name = "", "", ""
     if mrz_line_1.startswith("P<") and len(mrz_line_1) > 5:
@@ -99,7 +94,7 @@ def extract_mrz_info(ocr_text):
     # Calculate the check digit for the passport number
     calculated_check_digit = calculate_check_digit(passport_number)
     
-    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, nationality, date_of_birth
+    return issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth
 
 def format_date_of_birth(date_of_birth):
     try:
@@ -110,7 +105,7 @@ def format_date_of_birth(date_of_birth):
         else:
             dob_year += 2000
         dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
-        formatted_date = dob_datetime.strftime("%B/%d/%Y")
+        formatted_date = dob_datetime.strftime("%B %d, %Y")
         return formatted_date
     except ValueError:
         return "Invalid Date"
@@ -157,7 +152,7 @@ def main():
                     extracted_text = perform_ocr(img_sharpened_bytes)
 
                     # Extract and display the MRZ
-                    mrz_lines = extract_mrz_info(extracted_text)
+                    mrz_lines = extract_mrz(extracted_text)
                     if mrz_lines:
                         issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
                         
