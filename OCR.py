@@ -106,11 +106,10 @@ def format_date_of_birth(date_of_birth):
             dob_year += 2000
         dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
         formatted_date = dob_datetime.strftime("%B/%d/%Y")
-        return formatted_date
+        return formatted_date, dob_datetime
     except ValueError:
-        return "Invalid Date"
+        return "Invalid Date", None
         
-
 def calculate_age(birth_date):
     today = datetime.today()
     birth_date = datetime.strptime(birth_date, "%Y%m%d")
@@ -163,8 +162,9 @@ def main():
                     if mrz_lines:
                         issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
                         
-                        formatted_date_of_birth = format_date_of_birth(date_of_birth)
-                        age = calculate_age(date_of_birth)
+                        # After formatted_date_of_birth assignment
+                        formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
+                        age = calculate_age(dob_datetime)
                         
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
