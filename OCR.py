@@ -183,7 +183,8 @@ def main():
                         
                         formatted_date_of_birth, dob_datetime = format_date(date_of_birth)
                         formatted_expiration_date, _ = format_date(expiration_date, is_dob=False)
-
+                        
+                        age = calculate_age(dob_datetime)
                         
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
@@ -218,7 +219,6 @@ def main():
                         st.text(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
-
 
 if __name__ == "__main__":
     main()
