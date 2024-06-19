@@ -110,7 +110,6 @@ def format_date_of_birth(date_of_birth):
     except ValueError:
         return "Invalid Date"
         
-    age = calculate_age(date_of_birth)
 
 def calculate_age(birth_date):
     today = datetime.today()
@@ -165,6 +164,7 @@ def main():
                         issuing_country, surname, given_name, passport_number, check_digit_from_mrz, calculated_check_digit, nationality, date_of_birth = extract_mrz_info(mrz_lines)
                         
                         formatted_date_of_birth = format_date_of_birth(date_of_birth)
+                        age = calculate_age(date_of_birth)
                         
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
