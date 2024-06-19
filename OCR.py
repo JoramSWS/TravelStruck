@@ -44,12 +44,14 @@ def perform_ocr(image_content):
 def extract_mrz(text):
     lines = text.split('\n')
     mrz_line_1 = None
-    mrz_line_2 = lines[-1].replace(" ", "")  # The last line in the extracted text
+    mrz_line_2 = None
 
     for line in lines:
-        if line.startswith("P<"):
-            mrz_line_1 = line.replace(" ", "")
-            break
+        cleaned_line = line.replace(" ", "")
+        if cleaned_line.startswith("P<"):
+            mrz_line_1 = cleaned_line
+        elif len(cleaned_line) == 44 and cleaned_line != mrz_line_1:
+            mrz_line_2 = cleaned_line
 
     if mrz_line_1 and mrz_line_2:
         return [mrz_line_1, mrz_line_2]
@@ -68,10 +70,8 @@ def calculate_check_digit(data):
     return total % 10
 
 def extract_mrz_info(mrz_lines):
-    if len(mrz_lines) != 2:
-        return "", "", "", "", "", "", "", ""
-
     mrz_line_1, mrz_line_2 = mrz_lines
+    
     # Process the first MRZ line
     issuing_country, surname, given_name = "", "", ""
     if mrz_line_1.startswith("P<") and len(mrz_line_1) > 5:
@@ -85,7 +85,7 @@ def extract_mrz_info(mrz_lines):
     
     # Process the second MRZ line
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
-    if mrz_line_2 and len(mrz_line_2) > 19:
+    if len(mrz_line_2) == 44:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
         check_digit_from_mrz = mrz_line_2[9]  # Extract the 10th character (check digit)
         nationality = mrz_line_2[10:13]  # Extract the next 3 characters for nationality
@@ -105,7 +105,7 @@ def format_date_of_birth(date_of_birth):
         else:
             dob_year += 2000
         dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
-        formatted_date = dob_datetime.strftime("%B %d, %Y")
+        formatted_date = dob_datetime.strftime("%B/%d/%Y")
         return formatted_date
     except ValueError:
         return "Invalid Date"
