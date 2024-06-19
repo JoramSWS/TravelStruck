@@ -173,10 +173,11 @@ def main():
                     if mrz_lines:
                         (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
                          calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
-                         calculated_dob_check_digit, sex) = extract_mrz_info("\n".join(mrz_lines))
+                         calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
                         
                         formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
                         age = calculate_age(dob_datetime)
+                        formatted_expiration_date, _ = format_date_of_birth(expiration_date)
                         
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
@@ -211,6 +212,7 @@ def main():
                         st.text(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
 if __name__ == "__main__":
     main()
