@@ -193,62 +193,57 @@ def main():
                     img_sharpened_bytes = buffered.getvalue()
                     extracted_text = perform_ocr(img_sharpened_bytes)
         
+                    # Extract and display the MRZ
+                    mrz_lines = extract_mrz(extracted_text)
+                    if mrz_lines:
+                        (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
+                         calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
+                         calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
+                        
+                        formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
+                        formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
+                        
+                        age = calculate_age(dob_datetime)
+
+                         # Calculate months until expiration
+                        months_until = months_until_expiration(expiration_date)
+
+                        st.subheader('Issuing Country:')
+                        st.text(issuing_country)
+                        st.subheader('Surname:')
+                        st.text(surname)
+                        st.subheader('Given Name:')
+                        st.text(given_name)
+                        st.subheader('Passport Number:')
+                        st.text(passport_number)
+                        if check_digit_from_mrz != str(calculated_check_digit):
+                            st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
+                        else:
+                            st.text("Passport Number extraction verified.")
+                        st.subheader('Nationality:')
+                        st.text(nationality)
+                        st.subheader('Date of Birth:')
+                        st.text(date_of_birth)
+                        st.text(formatted_date_of_birth)
+                        st.subheader('Age:')
+                        st.text(age)
+                        if dob_check_digit != str(calculated_dob_check_digit):
+                            st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
+                        else:
+                            st.text("Date of Birth extraction verified.")
+                        st.subheader('Sex:')
+                        st.text(sex)
+                        st.subheader('Expiration Date:')
+                        st.text(expiration_date)
+                        st.text(formatted_expiration_date)
+                        if months_until is not None and months_until < 6:
+                            st.warning(f"Expiration date is less than 6 months away. It is {months_until} months away.")
+                        st.subheader('Extracted MRZ:')
+                        st.text("\n".join(mrz_lines))
+                        st.text(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
-        
-            # Extract and display the MRZ
-            mrz_lines = extract_mrz(extracted_text)
-            if mrz_lines:
-                (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
-                 calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
-                 calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
-        
-                formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
-                formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
-        
-                age = calculate_age(dob_datetime)
-        
-                # Calculate months until expiration
-                months_until = months_until_expiration(expiration_date)
-        
-                st.subheader('Issuing Country:')
-                st.text(issuing_country)
-                st.subheader('Surname:')
-                st.text(surname)
-                st.subheader('Given Name:')
-                st.text(given_name)
-                st.subheader('Passport Number:')
-                st.text(passport_number)
-                if check_digit_from_mrz != str(calculated_check_digit):
-                    st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
-                else:
-                    st.text("Passport Number extraction verified.")
-                st.subheader('Nationality:')
-                st.text(nationality)
-                st.subheader('Date of Birth:')
-                st.text(date_of_birth)
-                st.text(formatted_date_of_birth)
-                st.subheader('Age:')
-                st.text(age)
-                if dob_check_digit != str(calculated_dob_check_digit):
-                    st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
-                else:
-                    st.text("Date of Birth extraction verified.")
-                st.subheader('Sex:')
-                st.text(sex)
-                st.subheader('Expiration Date:')
-                st.text(expiration_date)
-                st.text(formatted_expiration_date)
-                if months_until is not None:
-                    if months_until == -1:
-                        st.text("Expiration date has already passed.")
-                    elif months_until < 6:
-                        st.text(f"Expiration date is less than 6 months away. It is {months_until} months away.")
-                    else:
-                        st.text("Expiration date is more than 6 months from today.")
-                st.subheader('Extracted MRZ:')
-                st.text("\n".join(mrz_lines))
-                st.text(extracted_text)
+
 
 if __name__ == "__main__":
     main()
