@@ -170,8 +170,8 @@ def main():
                         st.subheader('Nationality')
                         st.text(nationality)
                         st.subheader('Date of Birth')
-                        st.text(date_of_birth)
-                        st.text(formatted_date_of_birth)    
+                        st.text({date_of_birth})
+                        st.text({formatted_date_of_birth})    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
 
