@@ -180,7 +180,7 @@ def main():
                         st.text(formatted_date_of_birth)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
-                        st.text(extracted_text)
+                      
                 except Exception as e:
                     st.error(f"Error: {e}")
 
