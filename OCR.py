@@ -236,11 +236,13 @@ def main():
                         st.subheader('Expiration Date:')
                         st.text(expiration_date)
                         st.text(formatted_expiration_date)
+                        # Display warning if under 6 months away or expired
+                        # Display warning if under 6 months away or expired
                         if months_until is not None:
-                            if months_until < -1:
-                                st.text("Expiration date has already passed.")
+                            if months_until == -1:
+                                st.warning("Expiration date has already passed.")
                             elif months_until < 6:
-                                st.text(f"Expiration date is less than 6 months away. It is {months_until} months away.")
+                                st.warning(f"Expiration date is less than 6 months away. It is {months_until} months away.")
                             else:
                                 st.text("Expiration date is more than 6 months from today.")
                         st.subheader('Extracted MRZ:')
