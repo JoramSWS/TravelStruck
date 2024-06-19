@@ -7,6 +7,7 @@ from PIL import Image, ImageEnhance
 import io
 from pdf2image import convert_from_bytes
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 # Set environment variables from Streamlit secrets
 os.environ["GOOGLE_OCR_API"] = st.secrets["GOOGLE_OCR_API"]
@@ -136,6 +137,19 @@ def format_expiration_date(expiration_date, dob_datetime):
     except ValueError:
         return "Invalid Date"
 
+
+def months_until_expiration(expiration_date):
+    try:
+        exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
+        exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%y%m%d")
+        today = datetime.now()
+        delta = relativedelta(exp_datetime, today)
+        months_until = delta.months + delta.years * 12
+        return months_until
+    except ValueError:
+        return None
+
+
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
@@ -188,7 +202,10 @@ def main():
                         formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
                         
                         age = calculate_age(dob_datetime)
-                        
+
+                         # Calculate months until expiration
+                        months_until = months_until_expiration(expiration_date)
+
                         st.subheader('Issuing Country:')
                         st.text(issuing_country)
                         st.subheader('Surname:')
@@ -217,6 +234,8 @@ def main():
                         st.subheader('Expiration Date:')
                         st.text(expiration_date)
                         st.text(formatted_expiration_date)
+                        if months_until is not None and months_until < 6:
+                            st.warning(f"Expiration date is less than 6 months away. It is {months_until} months away.")
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
