@@ -118,16 +118,16 @@ def format_date_of_birth(date_of_birth):
             dob_year += 2000
         dob_datetime = datetime.strptime(f"{dob_year}{date_of_birth[2:]}", "%Y%m%d")
         formatted_date = dob_datetime.strftime("%B/%d/%Y")
-        return formatted_date
+        return formatted_date, dob_datetime
     except ValueError:
-        return "Invalid Date"
+        return "Invalid Date", None
         
 def calculate_age(birth_date):
     today = datetime.today()
     age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
     return age
 
-def format_expiration_date(expiration_date):
+def format_expiration_date(expiration_date, dob_datetime):
     try:
         exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
         exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%Y%m%d")
@@ -135,6 +135,7 @@ def format_expiration_date(expiration_date):
         return formatted_date
     except ValueError:
         return "Invalid Date"
+
 
 def main():
     # Streamlit App
