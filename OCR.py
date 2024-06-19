@@ -38,24 +38,8 @@ def perform_ocr(image_content):
     texts = response_data['responses'][0].get('textAnnotations', [])
     if texts:
         full_text = texts[0]['description']
-        return full_text
-    return ""
-
-def extract_mrz(text):
-    lines = text.split('\n')
-    mrz_line_1 = None
-    mrz_line_2 = None
-    
-    for line in lines:
-        if mrz_line_1 is None and line.startswith("P<"):
-            mrz_line_1 = line
-        elif mrz_line_1 is not None and mrz_line_2 is None and all(c.isalnum() or c == '<' for c in line):
-            mrz_line_2 = line
-            break
-
-    if mrz_line_1 and mrz_line_2:
-        return [mrz_line_1, mrz_line_2]
-    return []
+        return full_text, response_data
+    return "", response_data
 
 def calculate_check_digit(data):
     weights = [7, 3, 1]
