@@ -91,12 +91,14 @@ def extract_mrz_info(ocr_text):
     # Process the second MRZ line
     passport_number, check_digit_from_mrz, nationality, date_of_birth = "", "", "", ""
     dob_check_digit, calculated_dob_check_digit = "", ""
-    if mrz_line_2 and len(mrz_line_2) > 19:
+    sex = ""
+    if mrz_line_2 and len(mrz_line_2) > 20:
         passport_number = mrz_line_2[:9]  # Extract the first 9 characters
         check_digit_from_mrz = mrz_line_2[9]  # Extract the 10th character (check digit)
         nationality = mrz_line_2[10:13]  # Extract the next 3 characters for nationality
         date_of_birth = mrz_line_2[13:19]  # Extract the next 6 characters for date of birth
         dob_check_digit = mrz_line_2[19]  # Extract the 20th character (DOB check digit)
+        sex = mrz_line_2[20]  # Extract the 21st character (sex)
         
         # Calculate the check digit for the passport number
         calculated_check_digit = calculate_check_digit(passport_number)
@@ -105,8 +107,9 @@ def extract_mrz_info(ocr_text):
         calculated_dob_check_digit = calculate_check_digit(date_of_birth)
     
     return (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
-            calculated_check_digit, nationality, date_of_birth, dob_check_digit, calculated_dob_check_digit)
-    
+            calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
+            calculated_dob_check_digit, sex)
+
 def format_date_of_birth(date_of_birth):
     try:
         dob_year = int(date_of_birth[:2])
@@ -200,6 +203,8 @@ def main():
                             st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
                         else:
                             st.text("Date of Birth extraction verified.")
+                        st.subheader('Sex:')
+                        st.text(sex)    
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
