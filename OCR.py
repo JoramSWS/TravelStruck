@@ -109,7 +109,15 @@ def format_date_of_birth(date_of_birth):
         return formatted_date
     except ValueError:
         return "Invalid Date"
+        
+    age = calculate_age(date_of_birth)
 
+def calculate_age(birth_date):
+    today = datetime.today()
+    birth_date = datetime.strptime(birth_date, "%Y%m%d")
+    age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+    return age
+    
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
@@ -174,7 +182,9 @@ def main():
                         st.text(nationality)
                         st.subheader('Date of Birth:')
                         st.text(date_of_birth)
-                        st.text(formatted_date_of_birth)    
+                        st.text(formatted_date_of_birth)
+                        st.subheader('Age:')
+                        st.text(age)
                         st.subheader('Extracted MRZ:')
                         st.text("\n".join(mrz_lines))
                         st.text(extracted_text)
