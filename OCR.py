@@ -126,7 +126,16 @@ def calculate_age(birth_date):
     today = datetime.today()
     age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
     return age
-    
+
+def format_expiration_date(expiration_date):
+    try:
+        exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
+        exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%Y%m%d")
+        formatted_date = exp_datetime.strftime("%B/%d/%Y")
+        return formatted_date
+    except ValueError:
+        return "Invalid Date"
+
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
