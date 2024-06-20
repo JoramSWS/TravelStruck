@@ -4,3 +4,4 @@ numpy
 pdf2image
 Pillow
 datetime
+pyairtable
