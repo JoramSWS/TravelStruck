@@ -157,8 +157,8 @@ def months_until_expiration(expiration_date):
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
-    st.header("Add picture of USA passport")
-    st.subheader("Pic can be any orientation or any file format. But must be USA passport")
+    st.header("Add picture of passport")
+    st.subheader("Pic can be any orientation or any file format.")
     image_file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg', 'pdf'])
 
     if image_file is not None:
