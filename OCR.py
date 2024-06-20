@@ -246,7 +246,7 @@ def main():
                 except Exception as e:
                     st.error(f"Error: {e}")
                     
-                create_record(os.getenv("AIRTABLE_TABLE_NAME"), {"Passport Number": passport_number, "Surname": surname, "Given_Name": given_name, "Expiration_Date": formatted_expiration_date, "Issuing_Country": issuing_country, "Nationality": nationality, "Date_of_Birth": formatted_date_of_birth, "Sex": sex, "Photo":, img})        
+                create_record(os.getenv("AIRTABLE_TABLE_NAME"), {"Passport Number": passport_number, "Surname": surname, "Given_Name": given_name, "Expiration_Date": formatted_expiration_date, "Issuing_Country": issuing_country, "Nationality": nationality, "Date_of_Birth": formatted_date_of_birth, "Sex": sex, "Photo": img})        
             
 def create_record(table_name: str, record: dict) -> dict:
     api = Api(os.getenv("AIRTABLE_TOKEN"))
