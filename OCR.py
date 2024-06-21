@@ -208,22 +208,15 @@ def main():
                         st.write("**Given Name:**", given_name)
                         st.write("**Passport Number:**", passport_number)
                         if check_digit_from_mrz != str(calculated_check_digit):
-                            st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
+                            st.text(f"Error: The check digit does not match! Double check the picture. Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
                         else:
                             st.text("Passport Number extraction verified.")
-                        st.write("**Nationality:**", nationality)
-                        st.write("**Date of Birth:**", formatted_date_of_birth)
-                        if dob_check_digit != str(calculated_dob_check_digit):
-                            st.text(f"Error: The check digit for date of birth does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
-                        else:
-                            st.text("Date of Birth extraction verified.")
-                        st.write("**Sex:**", sex)
-                        st.write("**Expiration Date:**", formatted_expiration_date)
+                        
+                         st.write("**Expiration Date:**", formatted_expiration_date)
                         if exp_check_digit != str(calculated_exp_check_digit):
-                            st.text(f"Error: The check digit for expiration date does not match! Extracted: {exp_check_digit}, Calculated: {calculated_exp_check_digit}")
+                            st.text(f"Error: The check digit for expiration date does not match! Double check the picture. Extracted: {exp_check_digit}, Calculated: {calculated_exp_check_digit}")
                         else:
                             st.text("Expiration Date extraction verified.")
-                        st.write("**Age:**", age)
 
                         if months_until == -1:
                             st.write("Status: EXPIRED")
@@ -231,11 +224,26 @@ def main():
                             st.write("Status: EXPIRING SOON")
                         else:
                             st.write("Status: VALID")
-
-                    else:
-                        st.error("Could not detect MRZ lines.")
+                        
+                        st.write("**Nationality:**", nationality)
+                        st.write("**Date of Birth:**", formatted_date_of_birth)
+                        if dob_check_digit != str(calculated_dob_check_digit):
+                            st.text(f"Error: The check digit for date of birth does not match! Double check the picture. Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
+                        else:
+                            st.text("Date of Birth extraction verified.")
+                        st.write("**Age:**", age)
+                        st.write("**Sex:**", sex)
+                        st.write("**Full extracted text:**")
+                        st.text(extracted_text)
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"Error: {e}")                 
+                    
+                create_record(os.getenv("AIRTABLE_TABLE_NAME"), {"Passport Number": passport_number, "Surname": surname, "Given_Name": given_name, "Expiration_Date": formatted_expiration_date, "Issuing_Country": issuing_country, "Nationality": nationality, "Date_of_Birth": formatted_date_of_birth, "Sex": sex,})        
+            
+def create_record(table_name: str, record: dict) -> dict:
+    api = Api(os.getenv("AIRTABLE_TOKEN"))
+    base = Base(api, os.getenv("BASE_ID"))
+    table = base.table(table_name)
+    result = table.create(record)
+    return result
 
-if __name__ == "__main__":
-    main()
