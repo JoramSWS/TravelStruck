@@ -8,10 +8,12 @@ import io
 from pdf2image import convert_from_bytes
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from pyairtable import Api, Base
 
 # Set environment variables from Streamlit secrets
 os.environ["GOOGLE_OCR_API"] = st.secrets["GOOGLE_OCR_API"]
 GOOGLE_OCR_API = os.getenv("GOOGLE_OCR_API")
+os.environ["AIRTABLE_TABLE_NAME"] = st.secrets["AIRTABLE_TABLE_NAME"]
 
 def perform_ocr(image_content):
     url = f"https://vision.googleapis.com/v1/images:annotate?key={GOOGLE_OCR_API}"
@@ -143,6 +145,8 @@ def months_until_expiration(expiration_date):
         exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
         exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%y%m%d")
         today = datetime.now()
+        if exp_datetime < today:
+            return -1  # Expiration date has passed
         delta = relativedelta(exp_datetime, today)
         months_until = delta.months + delta.years * 12
         return months_until
@@ -153,8 +157,8 @@ def months_until_expiration(expiration_date):
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
-    st.header("Add picture of USA passport")
-    st.subheader("Pic can be any orientation or any file format. But must be USA passport")
+    st.header("Add picture of passport")
+    st.subheader("Pic can be any orientation or any file format.")
     image_file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg', 'pdf'])
 
     if image_file is not None:
@@ -166,7 +170,7 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.0
+        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.0
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
@@ -241,6 +245,15 @@ def main():
                         st.text(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
+                    
+                create_record(os.getenv("AIRTABLE_TABLE_NAME"), {"Passport Number": passport_number, "Surname": surname, "Given_Name": given_name, "Expiration_Date": formatted_expiration_date, "Issuing_Country": issuing_country, "Nationality": nationality, "Date_of_Birth": formatted_date_of_birth, "Sex": sex,})        
+            
+def create_record(table_name: str, record: dict) -> dict:
+    api = Api(os.getenv("AIRTABLE_TOKEN"))
+    base = Base(api, os.getenv("BASE_ID"))
+    table = base.table(table_name)
+    result = table.create(record)
+    return result
 
 if __name__ == "__main__":
     main()
