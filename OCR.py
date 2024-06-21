@@ -164,8 +164,8 @@ def convert_pdf_to_image(pdf_bytes):
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
-    st.header("Add picture of passport")
-    st.subheader("Pic can be any orientation or any file format.")
+    st.header("Add picture of USA passport")
+    st.subheader("Pic can be any orientation or any file format. But must be USA passport")
     image_file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg', 'pdf'])
 
     if image_file is not None:
@@ -181,7 +181,7 @@ def main():
 
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by 100%
+        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by 100
 
         img_byte_arr = io.BytesIO()
         img_brightened.save(img_byte_arr, format='JPEG')
@@ -278,7 +278,7 @@ def main():
                         st.write("**Age:**", age)
                         st.write("**Sex:**", sex)
                         st.write("**Expiration Date:**", formatted_expiration_date)
-                        
+
                         if months_until is not None:
                             st.write("**Months Until Expiration:**", months_until)
                             if months_until < 0:
