@@ -251,7 +251,6 @@ def main():
                             st.text("Date of Birth extraction verified.")
                         st.write("**Age:**", age)
                         st.write("**Sex:**", sex)
-                        st.write("**Expiration Date:**", formatted_expiration_date)
                         
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
