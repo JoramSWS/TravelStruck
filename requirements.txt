@@ -3,4 +3,7 @@ requests
 numpy
 pdf2image
 Pillow
+datetime
 pyairtable
+fitz
+PyMuPDF
