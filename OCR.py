@@ -195,7 +195,7 @@ def main():
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
         
-        if st.button("Extract Text"):
+         if st.button("Extract Text"):
             with st.spinner('Extracting...'):
                 try:
                     # Perform OCR
@@ -210,7 +210,8 @@ def main():
                     if mrz_lines:
                         (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
                          calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
-                         calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
+                         calculated_dob_check_digit, sex, expiration_date, exp_check_digit, 
+                         calculated_exp_check_digit) = extract_mrz_info("\n".join(mrz_lines))
                         
                         formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
                         formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
@@ -229,14 +230,6 @@ def main():
                             st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
                         else:
                             st.text("Passport Number extraction verified.")
-                        st.write("**Nationality:**", nationality)
-                        st.write("**Date of Birth:**", formatted_date_of_birth)
-                        if dob_check_digit != str(calculated_dob_check_digit):
-                            st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
-                        else:
-                            st.text("Date of Birth extraction verified.")
-                        st.write("**Age:**", age)
-                        st.write("**Sex:**", sex)
                         st.write("**Expiration Date:**", formatted_expiration_date)
                         exp_check_digit = mrz_line_2[27]
                         calculated_exp_check_digit = calculate_check_digit(expiration_date)
@@ -250,6 +243,16 @@ def main():
                             st.write("Status: EXPIRING SOON")
                         else:
                             st.write("Status: VALID")
+                        
+                        st.write("**Nationality:**", nationality)
+                        st.write("**Date of Birth:**", formatted_date_of_birth)
+                        if dob_check_digit != str(calculated_dob_check_digit):
+                            st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
+                        else:
+                            st.text("Date of Birth extraction verified.")
+                        st.write("**Age:**", age)
+                        st.write("**Sex:**", sex)
+                        st.write("**Expiration Date:**", formatted_expiration_date)
                         
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
