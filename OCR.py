@@ -5,7 +5,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image, ImageEnhance
 import io
-from pdf2image import convert_from_bytes
+import fitz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyairtable import Api, Base
