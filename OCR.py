@@ -232,10 +232,75 @@ def main():
             else:
                 st.write("**Status:** Unknown")
 
-        else:
-            st.write("No MRZ lines found. Please check the image and try again.")
-    else:
-        st.write("Please upload an image or PDF file.")
+        st.subheader('Image you Uploaded...')
+        st.image(img_array, width=450)
+
+        if st.button("Extract Text"):
+            with st.spinner('Extracting...'):
+                try:
+                    # Perform OCR
+                    # Convert the enhanced image to bytes for OCR
+                    buffered = io.BytesIO()
+                    img_sharpened.save(buffered, format="PNG")
+                    img_sharpened_bytes = buffered.getvalue()
+                    extracted_text = perform_ocr(img_sharpened_bytes)
+        
+                    # Extract and display the MRZ
+                    mrz_lines = extract_mrz(extracted_text)
+                    if mrz_lines:
+                        (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
+                         calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
+                         calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
+                        
+                        formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
+                        formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
+                        
+                        age = calculate_age(dob_datetime)
+
+                         # Calculate months until expiration
+                        months_until = months_until_expiration(expiration_date)
+
+
+                        st.write("**Issuing Country:**", issuing_country)
+                        st.write("**Surname:**", surname)
+                        st.write("**Given Name:**", given_name)
+                        st.write("**Passport Number:**", passport_number)
+                        if check_digit_from_mrz != str(calculated_check_digit):
+                            st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
+                        else:
+                            st.text("Passport Number extraction verified.")
+                        st.write("**Nationality:**", nationality)
+                        st.write("**Date of Birth:**", formatted_date_of_birth)
+                        if dob_check_digit != str(calculated_dob_check_digit):
+                            st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
+                        else:
+                            st.text("Date of Birth extraction verified.")
+                        st.write("**Age:**", age)
+                        st.write("**Sex:**", sex)
+                        st.write("**Expiration Date:**", formatted_expiration_date)
+                        
+                        if months_until is not None:
+                            st.write("**Months Until Expiration:**", months_until)
+                            if months_until < 0:
+                                st.write("**Status:** EXPIRED")
+                            elif months_until < 6:
+                                st.write("**Status:** EXPIRING SOON")
+                            else:
+                                st.write("**Status:** VALID")
+                        else:
+                            st.write("**Status:** Unknown")
+                        st.text(extracted_text)
+                except Exception as e:
+                    st.error(f"Error: {e}")
+                    
+                create_record(os.getenv("AIRTABLE_TABLE_NAME"), {"Passport Number": passport_number, "Surname": surname, "Given_Name": given_name, "Expiration_Date": formatted_expiration_date, "Issuing_Country": issuing_country, "Nationality": nationality, "Date_of_Birth": formatted_date_of_birth, "Sex": sex,})        
+            
+def create_record(table_name: str, record: dict) -> dict:
+    api = Api(os.getenv("AIRTABLE_TOKEN"))
+    base = Base(api, os.getenv("BASE_ID"))
+    table = base.table(table_name)
+    result = table.create(record)
+    return result
 
 if __name__ == "__main__":
     main()
