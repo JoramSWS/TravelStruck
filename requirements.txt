@@ -7,4 +7,4 @@ datetime
 pyairtable
 fitz
 PyMuPDF
-
+frontend
