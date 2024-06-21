@@ -5,7 +5,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image, ImageEnhance
 import io
-import fitz  # PyMuPDF
+import PyMuPDF 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyairtable import Api, Base
