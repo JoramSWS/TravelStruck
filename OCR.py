@@ -153,16 +153,6 @@ def months_until_expiration(expiration_date):
     except ValueError:
         return None
 
-def convert_pdf_to_image(pdf_bytes):
-    try:
-        pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
-        pdf_page = pdf_document.load_page(0)
-        pix = pdf_page.get_pixmap()
-        image_bytes = pix.tobytes("jpeg")
-        return image_bytes
-    except Exception as e:
-        raise Exception(f"Error converting PDF: {e}")
-
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
@@ -171,8 +161,10 @@ def main():
 
     if image_file is not None:
         if image_file.type == "application/pdf":
-            images = convert_from_bytes(image_file.read())
-            img = images[0]  # Take the first page
+            # Convert PDF to image
+            pdf_bytes = image_file.read()
+            image_bytes = convert_pdf_to_image(pdf_bytes)
+            img = Image.open(io.BytesIO(image_bytes))
         else:
             img = Image.open(image_file)
         
@@ -192,6 +184,7 @@ def main():
 
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
+
 
         if st.button("Extract Text"):
             with st.spinner('Extracting...'):
