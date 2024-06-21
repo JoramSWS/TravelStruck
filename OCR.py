@@ -246,11 +246,11 @@ def main():
                         
                         st.write("**Nationality:**", nationality)
                         st.write("**Date of Birth:**", formatted_date_of_birth)
+                        st.text("Age:", age)
                         if dob_check_digit != str(calculated_dob_check_digit):
                             st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
                         else:
                             st.text("Date of Birth extraction verified.")
-                        st.text("Age:", age)
                         st.write("**Sex:**", sex)
                         
                         st.write("**Full extracted text:**")
