@@ -250,7 +250,7 @@ def main():
                             st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
                         else:
                             st.text("Date of Birth extraction verified.")
-                        st.write("**Age:**", age)
+                        st.write("**Age:**", **age**)
                         st.write("**Sex:**", sex)
                         
                         st.write("**Full extracted text:**")
