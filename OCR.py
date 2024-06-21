@@ -5,7 +5,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image, ImageEnhance
 import io
-from pdf2image import convert_from_bytes
+import fitz  # PyMuPDF
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyairtable import Api, Base
@@ -151,6 +151,16 @@ def months_until_expiration(expiration_date):
     except ValueError:
         return None
 
+def convert_pdf_to_image(pdf_bytes):
+    try:
+        pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
+        pdf_page = pdf_document.load_page(0)  # Load the first page
+        pix = pdf_page.get_pixmap()
+        image_bytes = pix.tobytes("jpeg")
+        return image_bytes
+    except Exception as e:
+        raise Exception(f"Error converting PDF: {e}")
+
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
@@ -161,8 +171,8 @@ def main():
     if image_file is not None:
         if image_file.type == "application/pdf":
             try:
-                images = convert_from_bytes(image_file.read())
-                img = images[0]  # Take the first page
+                img_byte_arr = convert_pdf_to_image(image_file.read())
+                img = Image.open(io.BytesIO(img_byte_arr))
             except Exception as e:
                 st.error(f"Error converting PDF: {e}")
                 return
