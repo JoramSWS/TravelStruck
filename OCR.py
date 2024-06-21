@@ -153,6 +153,16 @@ def months_until_expiration(expiration_date):
     except ValueError:
         return None
 
+def convert_pdf_to_image(pdf_bytes):
+    try:
+        pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
+        pdf_page = pdf_document.load_page(0)
+        pix = pdf_page.get_pixmap()
+        image_bytes = pix.tobytes("jpeg")
+        return image_bytes
+    except Exception as e:
+        raise Exception(f"Error converting PDF: {e}")
+
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
@@ -170,7 +180,7 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.0
+        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.5
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
@@ -184,8 +194,7 @@ def main():
 
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
-
-
+        
         if st.button("Extract Text"):
             with st.spinner('Extracting...'):
                 try:
@@ -201,8 +210,7 @@ def main():
                     if mrz_lines:
                         (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
                          calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
-                         calculated_dob_check_digit, sex, expiration_date, exp_check_digit, 
-                         calculated_exp_check_digit) = extract_mrz_info("\n".join(mrz_lines))
+                         calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
                         
                         formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
                         formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
@@ -221,23 +229,6 @@ def main():
                             st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
                         else:
                             st.text("Passport Number extraction verified.")
-                        
-                        st.write("**Expiration Date:**", formatted_expiration_date)
-                        if exp_check_digit != str(calculated_exp_check_digit):
-                            st.text(f"Error: The check digit for expiration date does not match! Double check the picture. Extracted: {exp_check_digit}, Calculated: {calculated_exp_check_digit}")
-                        else:
-                            st.text("Expiration Date extraction verified.")
-                        
-                        if months_until is None:
-                            st.write("Status: UNKNOWN (Invalid expiration date)")
-                        else:
-                            if months_until == -1:
-                                st.write("Status: EXPIRED")
-                            elif months_until <= 6:
-                                st.write("Status: EXPIRING SOON")
-                            else:
-                                st.write("Status: VALID")
-                        
                         st.write("**Nationality:**", nationality)
                         st.write("**Date of Birth:**", formatted_date_of_birth)
                         if dob_check_digit != str(calculated_dob_check_digit):
@@ -247,6 +238,18 @@ def main():
                         st.write("**Age:**", age)
                         st.write("**Sex:**", sex)
                         st.write("**Expiration Date:**", formatted_expiration_date)
+                        exp_check_digit = mrz_line_2[27]
+                        calculated_exp_check_digit = calculate_check_digit(expiration_date)
+                        if exp_check_digit != str(calculated_exp_check_digit):
+                            st.text(f"Error: The check digit for expiration date does not match! Double check the picture. Extracted: {exp_check_digit}, Calculated: {calculated_exp_check_digit}")
+                        else:
+                            st.text("Expiration Date extraction verified.")
+                        if months_until == -1:
+                            st.write("Status: EXPIRED")
+                        elif months_until <= 6:
+                            st.write("Status: EXPIRING SOON")
+                        else:
+                            st.write("Status: VALID")
                         
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
@@ -265,3 +268,4 @@ def create_record(table_name: str, record: dict) -> dict:
 
 if __name__ == "__main__":
     main()
+
