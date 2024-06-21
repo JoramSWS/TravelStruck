@@ -144,7 +144,7 @@ def format_expiration_date(expiration_date, dob_datetime):
 def months_until_expiration(expiration_date):
     try:
         exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
-        exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%y%m%d")
+        exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%Y%m%d")
         today = datetime.now()
         if exp_datetime < today:
             return -1  # Expiration date has passed
@@ -235,13 +235,16 @@ def main():
                             st.text(f"Error: The check digit for expiration date does not match! Double check the picture. Extracted: {exp_check_digit}, Calculated: {calculated_exp_check_digit}")
                         else:
                             st.text("Expiration Date extraction verified.")
-
-                        if months_until == -1:
-                            st.write("Status: EXPIRED")
-                        elif months_until <= 6:
-                            st.write("Status: EXPIRING SOON")
+                        
+                        if months_until is None:
+                            st.write("Status: UNKNOWN (Invalid expiration date)")
                         else:
-                            st.write("Status: VALID")
+                            if months_until == -1:
+                                st.write("Status: EXPIRED")
+                            elif months_until <= 6:
+                                st.write("Status: EXPIRING SOON")
+                            else:
+                                st.write("Status: VALID")
                         
                         st.write("**Nationality:**", nationality)
                         st.write("**Date of Birth:**", formatted_date_of_birth)
