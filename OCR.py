@@ -164,8 +164,7 @@ def convert_pdf_to_image(pdf_bytes):
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
-    st.header("Add picture of USA passport")
-    st.subheader("Pic can be any orientation or any file format. But must be USA passport")
+    st.subheader("Add picture of passport in any orientation or file format")
     image_file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg', 'pdf'])
 
     if image_file is not None:
