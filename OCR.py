@@ -252,15 +252,17 @@ def main():
                         else:
                             st.text("Date of Birth extraction verified.")
                         st.write("**Sex:**", sex)
-                        
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
+                        
                  # Save the original image as bytes for attachment
                         original_image_bytes = image_file.read()
                         attachment = {
                             "url": f"data:{image_file.type};base64,{base64.b64encode(original_image_bytes).decode()}",
                             "filename": image_file.name
                         }
+
+                        st.link_button("Go to passport database", "https://airtable.com/appybeP0TTJarsL94/tblWmGrE4Okn0W5AB/viwkrv1DhmfUjYDSE?blocks=hide")
                         
                         create_record(os.getenv("AIRTABLE_TABLE_NAME"), {
                             "Passport Number": passport_number, 
