@@ -246,6 +246,8 @@ def main():
                                 st.write("**Status:** VALID")
                         else:
                             st.write("**Status:** Unknown")
+                        
+                        st.write("**Full extracted text:**")
                         st.text(extracted_text)
                 except Exception as e:
                     st.error(f"Error: {e}")
