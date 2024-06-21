@@ -1,3 +1,4 @@
+
 import os
 import requests
 import base64
@@ -190,14 +191,7 @@ def main():
         sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
         img_sharpened = sharpness_enhancer.enhance(2.0)  # Increase sharpness by a factor of 2
         
-        # Convert to grayscale
-        img_gray = img_sharpened.convert('L')
-
-        # Apply binary threshold to make it high contrast black and white
-        threshold = 128
-        img_bw = img_gray.point(lambda x: 255 if x > threshold else 0, mode='1')
-        
-        img_array = np.array(img_bw)
+        img_array = np.array(img_sharpened)
 
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
@@ -208,9 +202,9 @@ def main():
                     # Perform OCR
                     # Convert the enhanced image to bytes for OCR
                     buffered = io.BytesIO()
-                    img_bw.save(buffered, format="PNG")
-                    img_bw_bytes = buffered.getvalue()
-                    extracted_text = perform_ocr(img_bw_bytes)
+                    img_sharpened.save(buffered, format="PNG")
+                    img_sharpened_bytes = buffered.getvalue()
+                    extracted_text = perform_ocr(img_sharpened_bytes)
         
                     # Extract and display the MRZ
                     mrz_lines = extract_mrz(extracted_text)
@@ -276,4 +270,3 @@ def create_record(table_name: str, record: dict) -> dict:
 
 if __name__ == "__main__":
     main()
-
