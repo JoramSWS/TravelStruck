@@ -170,67 +170,24 @@ def main():
 
     if image_file is not None:
         if image_file.type == "application/pdf":
-            try:
-                img_byte_arr = convert_pdf_to_image(image_file.read())
-                img = Image.open(io.BytesIO(img_byte_arr))
-            except Exception as e:
-                st.error(f"Error converting PDF: {e}")
-                return
+            images = convert_from_bytes(image_file.read())
+            img = images[0]  # Take the first page
         else:
             img = Image.open(image_file)
-
+        
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by 100
+        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.0
 
-        img_byte_arr = io.BytesIO()
-        img_brightened.save(img_byte_arr, format='JPEG')
-        img_byte_arr = img_byte_arr.getvalue()
+        # Enhance the contrast of the image
+        contrast_enhancer = ImageEnhance.Contrast(img_brightened)
+        img_contrasted = contrast_enhancer.enhance(1.0)  # Increase contrast by a factor of 1.0
 
-        # Perform OCR
-        try:
-            ocr_text = perform_ocr(img_byte_arr)
-        except Exception as e:
-            st.error(f"Error performing OCR: {e}")
-            return
-
-        # Extract MRZ and additional information
-        mrz_info = extract_mrz_info(ocr_text)
-        if mrz_info:
-            (issuing_country, surname, given_name, passport_number, check_digit_from_mrz,
-             calculated_check_digit, nationality, date_of_birth, dob_check_digit,
-             calculated_dob_check_digit, sex, expiration_date) = mrz_info
-
-            # Format and display extracted information
-            formatted_dob, dob_datetime = format_date_of_birth(date_of_birth)
-            age = calculate_age(dob_datetime) if dob_datetime else "Unknown"
-            formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
-
-            st.subheader("OCR Results")
-            st.write("**Issuing Country:**", issuing_country)
-            st.write("**Surname:**", surname)
-            st.write("**Given Name:**", given_name)
-            st.write("**Passport Number:**", passport_number)
-            st.write("**Passport Number Check Digit:**", check_digit_from_mrz, 
-                     "(Calculated:", calculated_check_digit, ")")
-            st.write("**Nationality:**", nationality)
-            st.write("**Date of Birth:**", formatted_dob, "(Check Digit:", dob_check_digit, 
-                     "Calculated:", calculated_dob_check_digit, ")")
-            st.write("**Age:**", age)
-            st.write("**Sex:**", sex)
-            st.write("**Expiration Date:**", formatted_expiration_date)
-
-            months_until = months_until_expiration(expiration_date)
-            if months_until is not None:
-                st.write("**Months Until Expiration:**", months_until)
-                if months_until < 0:
-                    st.write("**Status:** EXPIRED")
-                elif months_until < 6:
-                    st.write("**Status:** EXPIRING SOON")
-                else:
-                    st.write("**Status:** VALID")
-            else:
-                st.write("**Status:** Unknown")
+        # Enhance the sharpness of the image
+        sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
+        img_sharpened = sharpness_enhancer.enhance(2.0)  # Increase sharpness by a factor of 2
+        
+        img_array = np.array(img_sharpened)
 
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
