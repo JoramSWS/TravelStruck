@@ -231,7 +231,6 @@ def main():
                         else:
                             st.text("Passport Number extraction verified.")
                         st.write("**Expiration Date:**", formatted_expiration_date)
-                        exp_check_digit = mrz_line_2[27]
                         calculated_exp_check_digit = calculate_check_digit(expiration_date)
                         if exp_check_digit != str(calculated_exp_check_digit):
                             st.text(f"Error: The check digit for expiration date does not match! Double check the picture. Extracted: {exp_check_digit}, Calculated: {calculated_exp_check_digit}")
