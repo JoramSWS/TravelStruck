@@ -36,7 +36,7 @@ def perform_ocr(image_content):
     response_data = response.json()
     if 'error' in response_data:
         raise Exception(response_data['error']['message'])
-    
+
     # Extract all text annotations
     texts = response_data['responses'][0].get('textAnnotations', [])
     if texts:
@@ -75,11 +75,11 @@ def calculate_check_digit(data):
 def extract_mrz_info(ocr_text):
     # Split the text into lines and clean up spaces
     lines = [line.replace(" ", "") for line in ocr_text.splitlines()]
-    
+
     # Identify the MRZ lines
     mrz_line_1 = next((line for line in lines if line.startswith("P<")), "")
     mrz_line_2 = next((line for line in lines if len(line) == 44 and not line.startswith("P<")), "")
-    
+
     # Process the first MRZ line
     issuing_country, surname, given_name = "", "", ""
     if mrz_line_1.startswith("P<") and len(mrz_line_1) > 5:
@@ -90,7 +90,7 @@ def extract_mrz_info(ocr_text):
             surname = name_part[:name_end_index].replace("<", " ").strip()
             given_name_part = name_part[name_end_index + 2:]  # Skip "<<"
             given_name = given_name_part.split("<<")[0].replace("<", " ").strip()
-    
+
     # Process the second MRZ line
     passport_number, check_digit_from_mrz, nationality, date_of_birth, dob_check_digit, sex, expiration_date = "", "", "", "", "", "", ""
     if mrz_line_2 and len(mrz_line_2) > 27:
@@ -101,15 +101,14 @@ def extract_mrz_info(ocr_text):
         dob_check_digit = mrz_line_2[19]  # Extract the 20th character (DOB check digit)
         sex = mrz_line_2[20]  # Extract the 21st character for sex
         expiration_date = mrz_line_2[21:27]  # Extract the next 6 characters for expiration date
-    
+
     # Calculate the check digit for the passport number
     calculated_check_digit = calculate_check_digit(passport_number)
     calculated_dob_check_digit = calculate_check_digit(date_of_birth)
-    
-    return (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
-            calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
-            calculated_dob_check_digit, sex, expiration_date)
 
+    return (issuing_country, surname, given_name, passport_number, check_digit_from_mrz,
+            calculated_check_digit, nationality, date_of_birth, dob_check_digit,
+            calculated_dob_check_digit, sex, expiration_date)
 
 def format_date_of_birth(date_of_birth):
     try:
@@ -124,7 +123,7 @@ def format_date_of_birth(date_of_birth):
         return formatted_date, dob_datetime
     except ValueError:
         return "Invalid Date", None
-        
+
 def calculate_age(birth_date):
     today = datetime.today()
     age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
@@ -139,7 +138,6 @@ def format_expiration_date(expiration_date, dob_datetime):
     except ValueError:
         return "Invalid Date"
 
-
 def months_until_expiration(expiration_date):
     try:
         exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
@@ -153,7 +151,6 @@ def months_until_expiration(expiration_date):
     except ValueError:
         return None
 
-
 def main():
     # Streamlit App
     st.title("Travelstruck Passport-o-Matic")
@@ -163,97 +160,72 @@ def main():
 
     if image_file is not None:
         if image_file.type == "application/pdf":
-            images = convert_from_bytes(image_file.read())
-            img = images[0]  # Take the first page
+            try:
+                images = convert_from_bytes(image_file.read())
+                img = images[0]  # Take the first page
+            except Exception as e:
+                st.error(f"Error converting PDF: {e}")
+                return
         else:
             img = Image.open(image_file)
-        
+
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.0
+        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by 100%
 
-        # Enhance the contrast of the image
-        contrast_enhancer = ImageEnhance.Contrast(img_brightened)
-        img_contrasted = contrast_enhancer.enhance(1.0)  # Increase contrast by a factor of 1.0
+        img_byte_arr = io.BytesIO()
+        img_brightened.save(img_byte_arr, format='JPEG')
+        img_byte_arr = img_byte_arr.getvalue()
 
-        # Enhance the sharpness of the image
-        sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
-        img_sharpened = sharpness_enhancer.enhance(2.0)  # Increase sharpness by a factor of 2
-        
-        img_array = np.array(img_sharpened)
+        # Perform OCR
+        try:
+            ocr_text = perform_ocr(img_byte_arr)
+        except Exception as e:
+            st.error(f"Error performing OCR: {e}")
+            return
 
-        st.subheader('Image you Uploaded...')
-        st.image(img_array, width=450)
+        # Extract MRZ and additional information
+        mrz_info = extract_mrz_info(ocr_text)
+        if mrz_info:
+            (issuing_country, surname, given_name, passport_number, check_digit_from_mrz,
+             calculated_check_digit, nationality, date_of_birth, dob_check_digit,
+             calculated_dob_check_digit, sex, expiration_date) = mrz_info
 
-        if st.button("Extract Text"):
-            with st.spinner('Extracting...'):
-                try:
-                    # Perform OCR
-                    # Convert the enhanced image to bytes for OCR
-                    buffered = io.BytesIO()
-                    img_sharpened.save(buffered, format="PNG")
-                    img_sharpened_bytes = buffered.getvalue()
-                    extracted_text = perform_ocr(img_sharpened_bytes)
-        
-                    # Extract and display the MRZ
-                    mrz_lines = extract_mrz(extracted_text)
-                    if mrz_lines:
-                        (issuing_country, surname, given_name, passport_number, check_digit_from_mrz, 
-                         calculated_check_digit, nationality, date_of_birth, dob_check_digit, 
-                         calculated_dob_check_digit, sex, expiration_date) = extract_mrz_info("\n".join(mrz_lines))
-                        
-                        formatted_date_of_birth, dob_datetime = format_date_of_birth(date_of_birth)
-                        formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
-                        
-                        age = calculate_age(dob_datetime)
+            # Format and display extracted information
+            formatted_dob, dob_datetime = format_date_of_birth(date_of_birth)
+            age = calculate_age(dob_datetime) if dob_datetime else "Unknown"
+            formatted_expiration_date = format_expiration_date(expiration_date, dob_datetime)
 
-                         # Calculate months until expiration
-                        months_until = months_until_expiration(expiration_date)
+            st.subheader("OCR Results")
+            st.write("**Issuing Country:**", issuing_country)
+            st.write("**Surname:**", surname)
+            st.write("**Given Name:**", given_name)
+            st.write("**Passport Number:**", passport_number)
+            st.write("**Passport Number Check Digit:**", check_digit_from_mrz, 
+                     "(Calculated:", calculated_check_digit, ")")
+            st.write("**Nationality:**", nationality)
+            st.write("**Date of Birth:**", formatted_dob, "(Check Digit:", dob_check_digit, 
+                     "Calculated:", calculated_dob_check_digit, ")")
+            st.write("**Age:**", age)
+            st.write("**Sex:**", sex)
+            st.write("**Expiration Date:**", formatted_expiration_date)
 
-                        st.subheader('Issuing Country:')
-                        st.text(issuing_country)
-                        st.subheader('Surname:')
-                        st.text(surname)
-                        st.subheader('Given Name:')
-                        st.text(given_name)
-                        st.subheader('Passport Number:')
-                        st.text(passport_number)
-                        if check_digit_from_mrz != str(calculated_check_digit):
-                            st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
-                        else:
-                            st.text("Passport Number extraction verified.")
-                        st.subheader('Nationality:')
-                        st.text(nationality)
-                        st.subheader('Date of Birth:')
-                        st.text(date_of_birth)
-                        st.text(formatted_date_of_birth)
-                        st.subheader('Age:')
-                        st.text(age)
-                        if dob_check_digit != str(calculated_dob_check_digit):
-                            st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
-                        else:
-                            st.text("Date of Birth extraction verified.")
-                        st.subheader('Sex:')
-                        st.text(sex)
-                        st.subheader('Expiration Date:')
-                        st.text(expiration_date)
-                        st.text(formatted_expiration_date)
-                        if months_until is not None and months_until < 6:
-                            st.warning(f"Expiration date is less than 6 months away. It is {months_until} months away.")
-                        st.subheader('Extracted MRZ:')
-                        st.text("\n".join(mrz_lines))
-                        st.text(extracted_text)
-                except Exception as e:
-                    st.error(f"Error: {e}")
-                    
-                create_record(os.getenv("AIRTABLE_TABLE_NAME"), {"Passport Number": passport_number, "Surname": surname, "Given_Name": given_name, "Expiration_Date": formatted_expiration_date, "Issuing_Country": issuing_country, "Nationality": nationality, "Date_of_Birth": formatted_date_of_birth, "Sex": sex,})        
-            
-def create_record(table_name: str, record: dict) -> dict:
-    api = Api(os.getenv("AIRTABLE_TOKEN"))
-    base = Base(api, os.getenv("BASE_ID"))
-    table = base.table(table_name)
-    result = table.create(record)
-    return result
+            months_until = months_until_expiration(expiration_date)
+            if months_until is not None:
+                st.write("**Months Until Expiration:**", months_until)
+                if months_until < 0:
+                    st.write("**Status:** EXPIRED")
+                elif months_until < 6:
+                    st.write("**Status:** EXPIRING SOON")
+                else:
+                    st.write("**Status:** VALID")
+            else:
+                st.write("**Status:** Unknown")
+
+        else:
+            st.write("No MRZ lines found. Please check the image and try again.")
+    else:
+        st.write("Please upload an image or PDF file.")
 
 if __name__ == "__main__":
     main()
