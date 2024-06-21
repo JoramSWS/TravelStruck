@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image, ImageEnhance
 import io
 import fitz
+from pdf2image import convert_from_bytes
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyairtable import Api, Base
@@ -156,7 +157,7 @@ def months_until_expiration(expiration_date):
 def convert_pdf_to_image(pdf_bytes):
     try:
         pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
-        pdf_page = pdf_document.load_page(0)  # Load the first page
+        pdf_page = pdf_document.load_page(0)
         pix = pdf_page.get_pixmap()
         image_bytes = pix.tobytes("jpeg")
         return image_bytes
