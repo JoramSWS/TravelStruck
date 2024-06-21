@@ -6,7 +6,6 @@ import numpy as np
 from PIL import Image, ImageEnhance
 import io
 import fitz
-from pdf2image import convert_from_bytes
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyairtable import Api, Base
