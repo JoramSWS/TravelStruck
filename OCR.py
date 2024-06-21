@@ -253,7 +253,7 @@ def main():
                             st.text("Date of Birth extraction verified.")
                         st.write("**Sex:**", sex)
                         
-                        st.link_button("Go to passport database", "https://airtable.com/appybeP0TTJarsL94/tblWmGrE4Okn0W5AB/viwkrv1DhmfUjYDSE?blocks=hide")
+                        st.link_button("Go to Airtable passport database", "https://airtable.com/appybeP0TTJarsL94/tblWmGrE4Okn0W5AB/viwkrv1DhmfUjYDSE?blocks=hide")
                         
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
