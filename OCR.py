@@ -1,3 +1,5 @@
+
+
 import os
 import requests
 import base64
@@ -6,7 +8,6 @@ import numpy as np
 from PIL import Image, ImageEnhance
 import io
 import fitz
-from pdf2image import convert_from_bytes
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyairtable import Api, Base
@@ -144,7 +145,7 @@ def format_expiration_date(expiration_date, dob_datetime):
 def months_until_expiration(expiration_date):
     try:
         exp_year = int(expiration_date[:2]) + 2000  # Always interpret as 20xx
-        exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%y%m%d")
+        exp_datetime = datetime.strptime(f"{exp_year}{expiration_date[2:]}", "%Y%m%d")
         today = datetime.now()
         if exp_datetime < today:
             return -1  # Expiration date has passed
@@ -172,14 +173,16 @@ def main():
 
     if image_file is not None:
         if image_file.type == "application/pdf":
-            images = convert_from_bytes(image_file.read())
-            img = images[0]  # Take the first page
+            # Convert PDF to image
+            pdf_bytes = image_file.read()
+            image_bytes = convert_pdf_to_image(pdf_bytes)
+            img = Image.open(io.BytesIO(image_bytes))
         else:
             img = Image.open(image_file)
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.0
+        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.5
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
@@ -193,7 +196,7 @@ def main():
 
         st.subheader('Image you Uploaded...')
         st.image(img_array, width=450)
-
+        
         if st.button("Extract Text"):
             with st.spinner('Extracting...'):
                 try:
@@ -229,13 +232,12 @@ def main():
                             st.text(f"Error: The check digit does not match! Extracted: {check_digit_from_mrz}, Calculated: {calculated_check_digit}")
                         else:
                             st.text("Passport Number extraction verified.")
-                        
                         st.write("**Expiration Date:**", formatted_expiration_date)
+                        calculated_exp_check_digit = calculate_check_digit(expiration_date)
                         if exp_check_digit != str(calculated_exp_check_digit):
                             st.text(f"Error: The check digit for expiration date does not match! Double check the picture. Extracted: {exp_check_digit}, Calculated: {calculated_exp_check_digit}")
                         else:
                             st.text("Expiration Date extraction verified.")
-
                         if months_until == -1:
                             st.write("Status: EXPIRED")
                         elif months_until <= 6:
@@ -251,15 +253,23 @@ def main():
                             st.text("Date of Birth extraction verified.")
                         st.write("**Age:**", age)
                         st.write("**Sex:**", sex)
-                        st.write("**Expiration Date:**", formatted_expiration_date)
                         
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
+                        
+                        create_record(os.getenv("AIRTABLE_TABLE_NAME"), {
+                            "Passport Number": passport_number, 
+                            "Surname": surname, 
+                            "Given_Name": given_name, 
+                            "Expiration_Date": formatted_expiration_date, 
+                            "Issuing_Country": issuing_country, 
+                            "Nationality": nationality, 
+                            "Date_of_Birth": formatted_date_of_birth, 
+                            "Sex": sex,
+                            "Full_Text": extracted_text
+                        })        
                 except Exception as e:
                     st.error(f"Error: {e}")
-                 
-                    
-                create_record(os.getenv("AIRTABLE_TABLE_NAME"), {"Passport Number": passport_number, "Surname": surname, "Given_Name": given_name, "Expiration_Date": formatted_expiration_date, "Issuing_Country": issuing_country, "Nationality": nationality, "Date_of_Birth": formatted_date_of_birth, "Sex": sex,})        
             
 def create_record(table_name: str, record: dict) -> dict:
     api = Api(os.getenv("AIRTABLE_TOKEN"))
