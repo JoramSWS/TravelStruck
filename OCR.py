@@ -1,5 +1,3 @@
-
-
 import os
 import requests
 import base64
@@ -182,11 +180,11 @@ def main():
         
         # Enhance the brightness of the image
         brightness_enhancer = ImageEnhance.Brightness(img)
-        img_brightened = brightness_enhancer.enhance(1.5)  # Increase brightness by a factor of 1.5
+        img_brightened = brightness_enhancer.enhance(1.0)  # Increase brightness by a factor of 1.0
 
         # Enhance the contrast of the image
         contrast_enhancer = ImageEnhance.Contrast(img_brightened)
-        img_contrasted = contrast_enhancer.enhance(1.0)  # Increase contrast by a factor of 1.0
+        img_contrasted = contrast_enhancer.enhance(1.5)  # Increase contrast by a factor of 1.5
 
         # Enhance the sharpness of the image
         sharpness_enhancer = ImageEnhance.Sharpness(img_contrasted)
@@ -247,12 +245,15 @@ def main():
                         
                         st.write("**Nationality:**", nationality)
                         st.write("**Date of Birth:**", formatted_date_of_birth)
+                        st.write("**Age:**", age)
                         if dob_check_digit != str(calculated_dob_check_digit):
                             st.text(f"Error: The date of birth check digit does not match! Extracted: {dob_check_digit}, Calculated: {calculated_dob_check_digit}")
                         else:
                             st.text("Date of Birth extraction verified.")
-                        st.write("**Age:**", age)
                         st.write("**Sex:**", sex)
+            
+                        st.link_button("Go to Airtable passport database", "https://airtable.com/appybeP0TTJarsL94/tblWmGrE4Okn0W5AB/viwkrv1DhmfUjYDSE?blocks=hide")
+
                         
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
@@ -266,8 +267,10 @@ def main():
                             "Nationality": nationality, 
                             "Date_of_Birth": formatted_date_of_birth, 
                             "Sex": sex,
+
                             "Full_Text": extracted_text
-                        })        
+                        })
+                        
                 except Exception as e:
                     st.error(f"Error: {e}")
             
