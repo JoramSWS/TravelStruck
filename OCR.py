@@ -1,4 +1,3 @@
-
 import os
 import requests
 import base64
@@ -252,18 +251,12 @@ def main():
                         else:
                             st.text("Date of Birth extraction verified.")
                         st.write("**Sex:**", sex)
-                        
+            
                         st.link_button("Go to Airtable passport database", "https://airtable.com/appybeP0TTJarsL94/tblWmGrE4Okn0W5AB/viwkrv1DhmfUjYDSE?blocks=hide")
+
                         
                         st.write("**Full extracted text:**")
                         st.text(extracted_text)
-                        
-                 # Save the original image as bytes for attachment
-                        original_image_bytes = image_file.read()
-                        attachment = {
-                            "url": f"data:{image_file.type};base64,{base64.b64encode(original_image_bytes).decode()}",
-                            "filename": image_file.name
-                        }
                         
                         create_record(os.getenv("AIRTABLE_TABLE_NAME"), {
                             "Passport Number": passport_number, 
@@ -274,8 +267,10 @@ def main():
                             "Nationality": nationality, 
                             "Date_of_Birth": formatted_date_of_birth, 
                             "Sex": sex,
-                            "Photo": [attachment]
-                        })        
+
+                            "Full_Text": extracted_text
+                        })
+                        
                 except Exception as e:
                     st.error(f"Error: {e}")
             
