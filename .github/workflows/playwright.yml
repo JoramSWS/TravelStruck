@@ -4,6 +4,8 @@ on:
     branches: [ main ]
   schedule:
     - cron: '0 2 * * *'
+  workflow_dispatch:  
+  
 jobs:
   test:
     timeout-minutes: 60
